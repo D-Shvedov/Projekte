@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Make Article</title>
+  <link rel="stylesheet" href="/static/Wikepedia_style.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="hero">
+      <img src="/static/wikipedia-logo.png" width="150" alt="Logo">
+      <h1>Create Article</h1>
+    </div>
+
+    <a class="btn-link" href="{{ url_for('home') }}">← Back</a>
+
+    <form class="form-card" action="{{ url_for('kontakt') }}" method="post" enctype="multipart/form-data">
+
+      <label for="heading">Heading</label>
+      <input type="text" id="heading" name="heading" required>
+
+      <label for="author">Author</label>
+      <input type="text" id="author" name="author" required>
+
+      <label for="tags">Tags (comma separated)</label>
+      <input type="text" id="tags" name="tags">
+
+      <label for="foto">Upload Image (optional)</label>
+      <input type="file" id="foto" name="foto" accept="image/*">
+
+      <label for="article">Article</label>
+      <textarea id="article" name="article" rows="14"></textarea>
+
+      <button class="btn-primary" type="submit">Publish</button>
+    </form>
+  </div>
+</body>
+
+</html>

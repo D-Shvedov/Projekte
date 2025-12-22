@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{ a.heading }}</title>
+    <link rel="stylesheet" href="/static/Wikepedia_style.css">
+</head>
+
+<body>
+  <div class="container">
+    <a class="btn-link" href="{{ url_for('home') }}">← Back</a>
+    <br><br>
+
+    <div class="article-card card">
+      <div class="article-header">
+        <img src="/static/wikipedia-logo.png" width="150" alt="Logo">
+        <h1>{{ a.heading }}</h1>
+      </div>
+
+      <p class="muted">By {{ a.author }}</p>
+
+      {% if a.foto %}
+      <img class="detail-image" src="{{ url_for('static', filename='images/' ~ a.foto) }}" alt="Foto">
+      {% endif %}
+
+      <div class="tag-row">
+        {% for tag in a.tags %}
+          <span class="badge">{{ tag }}</span>
+        {% else %}
+          <span class="muted">No tags</span>
+        {% endfor %}
+      </div>
+
+      <p class="article-text">{{ a.article | replace("\n", "<br>") | safe }}</p>
+    </div>
+  </div>
+</body>
+
+</html>

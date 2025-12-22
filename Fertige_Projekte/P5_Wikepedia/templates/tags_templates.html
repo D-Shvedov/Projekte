@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Articles with Tag "{{ tag }}"</title>
+  <link rel="stylesheet" href="/static/Wikepedia_style.css">
+</html>
+<body>
+  <div class="container">
+    <div class="layout">
+      <main>
+        <div class="section">
+          <h2>Articles with Tag "{{ tag }}"</h2>
+          <p class="small">Articles count: {{ articles|length }}</p>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for index, a in articles %}
+              <tr>
+                <td>{{ a.heading }}</td>
+                <td>{{ a.author }}</td>
+                <td><a class="btn-link" href="{{ url_for('article_detail', article_id=index) }}">Open</a></td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="3" class="small">No articles found with this tag.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <a class="btn-link" href="{{ url_for('home') }}">← Back to Home</a>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

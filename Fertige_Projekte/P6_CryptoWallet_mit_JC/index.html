@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptowallet</title>
+    <link rel="stylesheet" href="CSS_Cryptowallet.css">
+</head>
+
+<body>
+    <h1 id="greeting">Hallo</h1>
+    <h2>Preis</h2>
+    <br>
+    <button class="wechselkurse" onclick="showWechselkurse()">Wechselkurse</button>
+    <div id="btc_price" class="wechselkurse"></div>
+    <div id="eth_price" class="wechselkurse"></div>
+    <div id="xrp_price" class="wechselkurse"></div>
+    <br>
+    <div class="operations">
+        <button class="btn-primary" id="show_cryptoadresse" onclick="showAddress()">Show Address</button>
+        <button class="btn-primary" id="show_balance" onclick="showBalance()">Show Balance</button>
+        <button class="btn-primary" id="transfer" onclick="transferform()">Transfer</button>
+        <button class="btn-primary" onclick="showTransactionHistory()">Transaction History</button>
+    </div>
+    <div class="addresse" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Crypto Addresse</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        Bitcoin</td>
+                    <td id="btc_balance">-</td>
+                </tr>
+                <tr>
+                    <td>ETH</td>
+                    <td id="eth_balance">-</td>
+                </tr>
+                <tr>
+                    <td>XRP</td>
+                    <td id="xrp_balance">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="balance" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="transfer-form" style="display: none;">
+        <form class="transfer-form" onsubmit="transfer(); return false;">
+            <label for="coin">Select Coin:</label>
+            <select name="coin" id="coin" required></select>
+            <label for="payment">Payment:</label>
+            <input type="number" id="payment" name="payment" required step="any" min="0">
+            <label for="recipient">Recipient Address:</label>
+            <input type="text" id="recipient" name="recipient" required>
+            <button class="btn-primary" type="submit">Send</button>
+        </form>
+        <p id="message_transfer"></p>
+    </div>
+    <div class="transaction_tabelle" style="display: none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Amount</th>
+                    <th>Recipient</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <form id="supportForm" style="display:none" onsubmit="return false;">
+        <input id="msg" placeholder="Nachricht schreiben…">
+
+        <button type="button" onclick="sendMessage()">
+            Senden
+        </button>
+
+        <div id="chat"></div>
+    </form>
+    <br>
+
+    <button class="btn-primary" onclick="chatanfangen()">Support</button>
+    <button class="btn-primary" onclick="auslogen()">Exit</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="JS_Cryptowallet.js"></script>
+</body>
+
+</html>

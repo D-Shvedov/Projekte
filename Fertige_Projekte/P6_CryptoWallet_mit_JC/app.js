@@ -17,7 +17,7 @@ const db = require("./database.js");
 const app = express();
 app.use(express.json());
 
-// 👉 Pfad zu deinem Ordner
+//  Pfad zu deinem Ordner
 const staticPath = __dirname;
 
 // Statische Dateien
@@ -34,6 +34,7 @@ app.get("/", (req, res) => {
 });
 
 
+// Socket.IO Kommunikation
 io.on("connection", (socket) => {
   // Verbindung hergestellt (Log entfernt auf Wunsch)
 
@@ -51,7 +52,7 @@ io.on("connection", (socket) => {
     const clean = String(text).trim();
     if (!clean) return;
 
-    console.log(`💬 [${from}]`, clean);
+    console.log(` [${from}]`, clean);
     io.emit("chat:message", { from, text: clean });
   });
 });
@@ -177,6 +178,8 @@ app.get('/api/show-balance/:id', (req, res) => {
   )
 });
 
+
+// Transfer durchführen
 app.post("/api/transfer/:id", (req, res) => {
   const id = Number(req.params.id);
   const { coin_transfer, payment_transfer, recipient_transfer } = req.body;

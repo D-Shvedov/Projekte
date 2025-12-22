@@ -9,7 +9,7 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS kontos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
-      password TEXT,
+      password_hash TEXT,
       adress_btc TEXT,
       btc_balance REAL  DEFAULT 0.5,
       adress_eth TEXT,

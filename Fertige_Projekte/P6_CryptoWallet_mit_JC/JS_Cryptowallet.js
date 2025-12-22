@@ -79,7 +79,7 @@ function login(name, password) {
                 return;
             }
 
-            localStorage.setItem("token", data.token);
+            sessionStorage.setItem("token", data.token);
             localStorage.setItem("name", name);
             localStorage.setItem("kontoId", data.id);
             localStorage.setItem("btc", data.adress_btc);

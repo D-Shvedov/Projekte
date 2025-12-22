@@ -9,6 +9,11 @@ const bitcoin = require("bitcoinjs-lib");
 const xrpl = require("xrpl");
 const { ethers } = require("ethers");
 
+// Umgebungsvariablen
+require("dotenv").config();
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 12;
+
 // JWT für Authentifizierung
 const jwt = require("jsonwebtoken");
 const db = require("./database.js");
@@ -71,93 +76,65 @@ process.stdin.on("data", (input) => {
 
 
 // Konto anlegen
-app.post('/api/konto-anlegen', (req, res) => {
-  console.log('POST /api/konto-anlegen body:', req.body);
+app.post("/api/konto-anlegen", (req, res) => {
   const { name, password } = req.body;
-
   if (!name || !password) {
-    return res.status(400).json({ error: 'Name und Passwort sind erforderlich' });
+    return res.status(400).json({ error: "Name und Passwort sind erforderlich" });
   }
 
-  // Prüfen, ob Nutzer existiert
-  db.get(
-    `SELECT * FROM kontos WHERE name = ? AND password = ?`,
-    [name, password],
-    (err, row) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (row) return res.status(400).json({ error: 'Konto existiert bereits' });
+  db.get(`SELECT id FROM kontos WHERE name = ?`, [name], async (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (row) return res.status(400).json({ error: "Konto existiert bereits" });
 
-      // ETH-Adresse
+    try {
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
       const ethWallet = ethers.Wallet.createRandom();
       const ethAddress = ethWallet.address;
 
-      // BTC-Adresse (bitcoinjs-lib v5.x!)
       const keyPairBTC = bitcoin.ECPair.makeRandom();
-      const { address: btcAddress } = bitcoin.payments.p2pkh({
-        pubkey: keyPairBTC.publicKey,
-      });
+      const { address: btcAddress } = bitcoin.payments.p2pkh({ pubkey: keyPairBTC.publicKey });
 
-      // XRP-Adresse
       const xrpWallet = xrpl.Wallet.generate();
       const xrpAddress = xrpWallet.classicAddress;
 
-      // In Datenbank speichern
       db.run(
-        `INSERT INTO kontos (name, password, adress_btc, adress_eth, adress_xrp)
+        `INSERT INTO kontos (name, password_hash, adress_btc, adress_eth, adress_xrp)
          VALUES (?, ?, ?, ?, ?)`,
-        [name, password, btcAddress, ethAddress, xrpAddress],
-        function (err) {
-          if (err) return res.status(500).json({ error: err.message });
-
-          res.status(201).json({
-            id: this.lastID,
-            name,
-            adress_btc: btcAddress,
-            adress_eth: ethAddress,
-            adress_xrp: xrpAddress
-          })
+        [name, passwordHash, btcAddress, ethAddress, xrpAddress],
+        function (err2) {
+          if (err2) return res.status(500).json({ error: err2.message });
+          return res.status(201).json({ id: this.lastID, name, adress_btc: btcAddress, adress_eth: ethAddress, adress_xrp: xrpAddress });
         }
-      )
+      );
+    } catch {
+      return res.status(500).json({ error: "Hashing failed" });
     }
-  )
-})
+  });
+});
+
 
 
 // Login
-app.post('/api/login', (req, res) => {
-  console.log('POST /api/login body:', req.body);
+app.post("/api/login", (req, res) => {
   const { name, password } = req.body;
 
-  db.get(`SELECT * FROM kontos WHERE name = ?`, [name], (err, user) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  db.get(`SELECT * FROM kontos WHERE name = ?`, [name], async (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user) return res.status(400).json({ error: "Benutzer nicht gefunden" });
 
-    if (!user) {
-      return res.status(400).json({ error: 'Benutzer nicht gefunden' });
-    }
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(400).json({ error: "Falsches Passwort" });
 
-    if (user.password !== password) {
-      return res.status(400).json({ error: 'Falsches Passwort' });
-    }
-
-    // Token generieren
     const token = jwt.sign(
       { id: user.id, name: user.name },
-      'geheimeschluessel',
-      { expiresIn: '1h' }
+      process.env.JWT_SECRET || "geheimeschluessel",
+      { expiresIn: "1h" }
     );
 
-    res.json({
-      token,
-      id: user.id,          // ✔ Konto-ID zurücksenden
-      name: user.name,
-      adress_btc: user.adress_btc,
-      adress_eth: user.adress_eth,
-      adress_xrp: user.adress_xrp
-    })
-  })
-})
+    return res.json({ token, id: user.id, name: user.name, adress_btc: user.adress_btc, adress_eth: user.adress_eth, adress_xrp: user.adress_xrp });
+  });
+});
 
 // Balance abfragen
 app.get('/api/show-balance/:id', (req, res) => {

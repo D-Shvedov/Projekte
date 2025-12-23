@@ -1,0 +1,11 @@
+<<<<<<< Updated upstream
+node_modules
+=======
+**/node_modules/
+database.sqlite
+**/database.sqlite
+.env
+**/.env
+.vscode/
+**/.vscode/
+>>>>>>> Stashed changes

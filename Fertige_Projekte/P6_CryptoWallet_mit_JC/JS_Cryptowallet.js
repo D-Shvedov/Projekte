@@ -1,4 +1,5 @@
 
+
 // Konto anlegen Funktion
 async function kontoAnlegen(name, password) {
     const kontoanlegenmessage = document.getElementById("KontoAnlegenMessage");
@@ -79,7 +80,7 @@ function login(name, password) {
                 return;
             }
 
-            localStorage.setItem("token", data.token);
+            sessionStorage.setItem("token", data.token);
             localStorage.setItem("name", name);
             localStorage.setItem("kontoId", data.id);
             localStorage.setItem("btc", data.adress_btc);
@@ -90,6 +91,15 @@ function login(name, password) {
         })
         .catch(err => console.error(err));
 }
+
+// Begrüßung anzeigen
+document.addEventListener("DOMContentLoaded", () => {
+    const greet = document.getElementById("greeting");
+    if (greet) {
+        greet.innerText = "Hallo " + localStorage.getItem("name");
+    }
+    console.log(localStorage.getItem("btc"))
+});
 
 // Begrüßung anzeigen
 document.addEventListener("DOMContentLoaded", () => {

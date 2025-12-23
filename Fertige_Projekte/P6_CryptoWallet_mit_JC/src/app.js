@@ -22,8 +22,8 @@ const db = require("./database.js");
 const app = express();
 app.use(express.json());
 
-//  Pfad zu deinem Ordner
-const staticPath = __dirname;
+//  Pfad zu deinem public Ordner
+const staticPath = path.join(__dirname, "..", "public");
 
 // Statische Dateien
 app.use(express.static(staticPath, { index: false }));

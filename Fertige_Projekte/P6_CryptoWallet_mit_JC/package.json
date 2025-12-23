@@ -1,16 +1,20 @@
 {
-  "name": "python_test",
+  "name": "crypto-wallet",
   "version": "1.0.0",
-  "description": "",
+  "description": "Ein sicheres Krypto-Wallet mit Support für Bitcoin, Ethereum und XRP",
   "license": "ISC",
-  "author": "",
+  "author": "Daniil Shvedov",
   "type": "commonjs",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
+    "start": "node src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "bitcoinjs-lib": "^5.2.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.10.0",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
     "socket.io": "^4.8.1",

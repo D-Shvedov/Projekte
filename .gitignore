@@ -1,11 +1,23 @@
-<<<<<<< Updated upstream
-node_modules
-=======
+# Node modules
+node_modules/
 **/node_modules/
+
+# SQLite database files
 database.sqlite
 **/database.sqlite
+
+# Environment files
 .env
 **/.env
+
+# VS Code settings
 .vscode/
 **/.vscode/
->>>>>>> Stashed changes
+
+# Lockfiles
+package-lock.json
+yarn.lock
+
+# OS files
+.DS_Store
+Thumbs.db

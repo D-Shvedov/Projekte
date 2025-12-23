@@ -128,11 +128,16 @@ function showAddress() {
 // Kontostände anzeigen
 function showBalance() {
     const id_konto = localStorage.getItem("kontoId");
+    const token = sessionStorage.getItem("token");
     const balanceDiv = document.querySelector(".balance");
     const isVisible = balanceDiv && balanceDiv.style.display && balanceDiv.style.display !== 'none';
     closeAllWindows();
     if (!isVisible) {
-    fetch(`/api/show-balance/${id_konto}`)
+    fetch(`/api/show-balance/${id_konto}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
         .then(response => response.json())
         .then(data => {
             if (data.error) {
@@ -191,7 +196,8 @@ function transfer() {
     fetch(`/api/transfer/${id_konto}`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem("token")}`
         },
         body: JSON.stringify({ coin_transfer, payment_transfer, recipient_transfer })
     })
@@ -212,9 +218,14 @@ function transfer() {
 // Transaktionsverlauf anzeigen
 function showTransactionHistory() {
     const id_konto = localStorage.getItem("kontoId");
+    const token = sessionStorage.getItem("token");
     const historyDiv = document.querySelector(".transaction_tabelle");
     const isVisible = historyDiv && historyDiv.style.display && historyDiv.style.display !== 'none';
-    fetch(`/api/show-transaction/${id_konto}`)
+    fetch(`/api/show-transaction/${id_konto}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
         .then(response => response.json())
         .then(data => {
             if (data.error) {

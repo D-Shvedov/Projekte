@@ -33,6 +33,24 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 
+// JWT Authentifizierungs-Middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: "Token erforderlich" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET || "geheimeschluessel", (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Token ungültig oder abgelaufen" });
+    }
+    req.user = user; // Benutzer-Info in Request speichern
+    next();
+  });
+};
+
 // ERSTE ROUTE
 app.get("/", (req, res) => {
   res.sendFile(path.join(staticPath, "Login_Cryptowallet.html"));
@@ -137,8 +155,15 @@ app.post("/api/login", (req, res) => {
 });
 
 // Balance abfragen
-app.get('/api/show-balance/:id', (req, res) => {
+// Balance abfragen (geschützt)
+app.get('/api/show-balance/:id', authenticateToken, (req, res) => {
   const id = req.params.id;
+  
+  // Prüfe, ob der Benutzer nur auf sein eigenes Konto zugreift
+  if (req.user.id != id) {
+    return res.status(403).json({ error: "Zugriff verweigert" });
+  }
+  
   db.get("SELECT btc_balance, eth_balance, xrp_balance FROM kontos WHERE id = ?", [id], (err, user) => {
     if (err) {
       return res.status(500).json({ error: err.message });
@@ -156,9 +181,15 @@ app.get('/api/show-balance/:id', (req, res) => {
 });
 
 
-// Transfer durchführen
-app.post("/api/transfer/:id", (req, res) => {
+// Transfer durchführen (geschützt)
+app.post("/api/transfer/:id", authenticateToken, (req, res) => {
   const id = Number(req.params.id);
+  
+  // Prüfe, ob der Benutzer nur sein eigenes Konto verwendet
+  if (req.user.id != id) {
+    return res.status(403).json({ error: "Zugriff verweigert" });
+  }
+  
   const { coin_transfer, payment_transfer, recipient_transfer } = req.body;
 
   // Basics prüfen
@@ -256,8 +287,13 @@ app.post("/api/transfer/:id", (req, res) => {
 })
 
 // Show Transaktion
-app.get('/api/show-transaction/:id', (req, res) => {
+app.get('/api/show-transaction/:id', authenticateToken, (req, res) => {
   const senderId = Number(req.params.id);
+  
+  // Prüfe, ob der Benutzer nur seine eigenen Transaktionen sieht
+  if (req.user.id != senderId) {
+    return res.status(403).json({ error: "Zugriff verweigert" });
+  }
 
   db.all(
     `SELECT coin, amount, address, date

@@ -136,7 +136,6 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-
 // Balance abfragen
 app.get('/api/show-balance/:id', (req, res) => {
   const id = req.params.id;

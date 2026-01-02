@@ -42,25 +42,7 @@ Install dependencies from `package.json`:
 npm install
 ```
 
-Öffne package.json und schau, ob du sowas siehst:
-
+## Start
 ```bash
-"dependencies": {
-  "express": "^4.19.0",
-  "socket.io": "^4.7.5",
-  "sqlite3": "^5.1.7",
-  "jsonwebtoken": "^9.0.2"
-}
-```
-
-**Wenn ja → npm install reicht.**
-
-**Wenn nein → einmal ausführen:**
-```bash
-npm install express socket.io sqlite3 jsonwebtoken
-```
-
-Danach stehen sie drin und ab dann reicht immer:
-```bash
-npm install
+node .\app.js
 ```

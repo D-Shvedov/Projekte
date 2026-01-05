@@ -1,12 +1,5 @@
-node_modules/
-**/node_modules/
-
-database.sqlite
-**/database.sqlite
-
+/node_modules
+/package-lock.json
+/.env.example
 .env
-**/.env
-
-.vscode/
-**/.vscode/
-
+/P6_CryptoWallet_mit_JC\.env.example

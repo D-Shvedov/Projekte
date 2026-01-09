@@ -10,6 +10,8 @@
 <body>
     <h1>Todo</h1>
 
+    <p id="status"></p>
+
     <form id="sign">
         <input id="alias" placeholder="username">
         <input id="pass" type="password" placeholder="passphrase">
@@ -23,6 +25,8 @@
         <input id="say">
         <input id="speak" type="submit" value="speak">
     </form>
+
+    <button id="exit">Exit</button>
 
     <script src="https://cdn.jsdelivr.net/npm/gun/examples/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
@@ -57,6 +61,17 @@
             $('#sign').hide();
             user.get('said').map().once(UI);
         });
+                
+        $('#exit').on('click', function () {
+            user.leave();
+            $('#sign').show();
+            $('ul').empty();
+        });
+
+        gun.on('hi', function () {
+            $('#status').text('connected');
+        });
+        
     </script>
 </body>
 

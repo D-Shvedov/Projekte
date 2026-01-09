@@ -51,9 +51,10 @@
     <script>
         // Setup
         const gun = Gun([
-            "http://localhost:8765/gun",
+            "https://DEIN-RELAY-URL/gun",
             "https://gun-manhattan.herokuapp.com/gun"
         ]);
+
 
         const user = gun.user();
 
@@ -187,8 +188,10 @@
             const text = $("#say").val().trim();
             if (!text) return;
 
-            user.get("said").set({ name, text });
-            $("#say").val("");
+            const room = gun.get("public-chat");
+            room.set({ name, text, ts: Date.now() });
+            room.map().on(renderMessage);
+
         });
 
         // --- Save profile (private) ---

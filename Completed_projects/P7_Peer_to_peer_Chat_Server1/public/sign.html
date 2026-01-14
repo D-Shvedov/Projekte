@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GUN P2P Chat - Server 1</title>
+</head>
+
+<body>
+    <h1>🔫 P2P Chat - Server 1</h1>
+
+    <p id="status"></p>
+
+    <!-- Sign in/up -->
+    <form id="sign">
+        <input id="alias" placeholder="username" />
+        <input id="pass" type="password" placeholder="passphrase" />
+        <input id="in" type="submit" value="sign in" />
+        <input id="up" type="button" value="sign up" />
+    </form>
+
+    <!-- App (hidden until login) -->
+    <div id="app" style="display: none;">
+        <h2>Profile</h2>
+
+        <form id="profile">
+            <input id="name" placeholder="name" />
+            <input id="location" placeholder="location" />
+            <input id="years" placeholder="years" />
+            <input id="save" type="submit" value="save" />
+        </form>
+
+        <p id="publicKeyRow"><b>Public Key:</b> <span id="pubkey"></span></p>
+
+        <h2>Messages</h2>
+        <form id="said">
+            <input id="say" placeholder="type message..." />
+            <input id="speak" type="submit" value="speak" />
+        </form>
+
+        <ul id="messages"></ul>
+
+        <button id="exit">Exit</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gun/examples/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+
+    <script>
+        // Setup - Connect to BOTH servers for redundancy
+        const gun = Gun([
+            "https://gun-peer-1.onrender.com/gun",
+            "https://gun-peer-2.onrender.com/gun"
+        ]);
+
+        const user = gun.user();
+
+        //  Help function
+        function setStatus(text) {
+            $("#status").text(text);
+        }
+
+        function showApp() {
+            $("#sign").hide();
+            $("#app").show();
+        }
+
+        function hideApp() {
+            $("#app").hide();
+            $("#sign").show();
+        }
+
+        function clearUI() {
+            $("#messages").empty();
+            $("#say").val("");
+            $("#name").val("");
+            $("#location").val("");
+            $("#years").val("");
+            $("#pubkey").text("");
+        }
+
+        // Render message (robust against object values)
+        function renderMessage(data, id) {
+            if (!data) return;
+
+            const key = String(id);
+
+            let line = "";
+            if (typeof data === "object") {
+                const n = (data.name || "").trim();
+                const t = (data.text || "").trim();
+                line = n ? (n + ": " + t) : t;   // wenn kein name -> nur text
+            } else {
+                line = String(data);
+            }
+
+            if (!line) return;
+
+            let li = $("#" + key);
+            if (!li.length) {
+                li = $("<li>").attr("id", key).appendTo($("#messages"));
+            }
+            li.text(line);
+        }
+
+        // Get public key
+        function displayPubKey() {
+            user.get("pub").once((pub) => {
+                $("#pubkey").text(pub);
+            });
+        }
+
+        // Initial setup
+        user.on("auth", () => {
+            setStatus("Logged in");
+            showApp();
+            displayPubKey();
+            loadProfile();
+            loadMessages();
+        });
+
+        user.on("create", () => {
+            user.on("auth", () => {
+                setStatus("Account created!");
+                showApp();
+                displayPubKey();
+            });
+        });
+
+        // Sign In
+        $("#in").on("click", (e) => {
+            e.preventDefault();
+            const alias = $("#alias").val();
+            const pass = $("#pass").val();
+            user.auth(alias, pass, (ack) => {
+                if (ack.err) {
+                    setStatus("Error: " + ack.err);
+                }
+            });
+        });
+
+        // Sign Up
+        $("#up").on("click", () => {
+            const alias = $("#alias").val();
+            const pass = $("#pass").val();
+            user.create(alias, pass, (ack) => {
+                if (ack.err) {
+                    setStatus("Error: " + ack.err);
+                } else {
+                    setStatus("Account created! Sign in now.");
+                }
+            });
+        });
+
+        // Save profile
+        $("#save").on("click", (e) => {
+            e.preventDefault();
+            user.get("profile").put({
+                name: $("#name").val(),
+                location: $("#location").val(),
+                years: $("#years").val()
+            });
+            setStatus("Profile saved!");
+        });
+
+        // Load profile
+        function loadProfile() {
+            user.get("profile").on((profile) => {
+                if (profile) {
+                    $("#name").val(profile.name || "");
+                    $("#location").val(profile.location || "");
+                    $("#years").val(profile.years || "");
+                }
+            });
+        }
+
+        // Send message
+        $("#speak").on("click", (e) => {
+            e.preventDefault();
+            const text = $("#say").val();
+            if (text) {
+                user.get("said").set({ text: text });
+                $("#say").val("");
+            }
+        });
+
+        // Load messages
+        function loadMessages() {
+            gun.get("messages").map().on((data, id) => {
+                renderMessage(data, id);
+            });
+        }
+
+        // Exit
+        $("#exit").on("click", () => {
+            user.leave();
+            clearUI();
+            hideApp();
+            setStatus("Logged out");
+        });
+    </script>
+</body>
+
+</html>
+
+

@@ -52,8 +52,8 @@
     <script>
         // Setup - Connect to BOTH servers for redundancy
         const gun = Gun([
-            "https://gun-peer-1.onrender.com/gun",
-            "https://gun-peer-2.onrender.com/gun"
+            "http://localhost:8765/gun",
+            "http://localhost:8766/gun"
         ]);
 
         const user = gun.user();

@@ -45,6 +45,6 @@ Gun({
 
 const PORT = process.env.PORT || 8765;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🔫 GUN Relay Server 1 running on port ${PORT}`);
-  console.log(`📡 Connected to peer: https://gun-peer-2.onrender.com/gun`);
+  console.log(`GUN Relay Server 1 running on port ${PORT}`);
+  console.log(`Connected to peer: https://gun-peer-2.onrender.com/gun`);
 });

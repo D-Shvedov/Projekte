@@ -11,6 +11,7 @@
     <h1>🔫 P2P Chat - Server 1</h1>
 
     <p id="status"></p>
+    <p id="peers"><b>Active Peers:</b> <span id="peerCount">0</span></p>
 
     <!-- Sign in/up -->
     <form id="sign">
@@ -56,6 +57,14 @@
         ]);
 
         const user = gun.user();
+
+        // Monitor active peers
+        setInterval(() => {
+            if (gun._.opt.peers) {
+                const peerCount = Object.keys(gun._.opt.peers).length;
+                $("#peerCount").text(peerCount);
+            }
+        }, 1000);
 
         //  Help function
         function setStatus(text) {

@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GUN P2P Chat - Server 1</title>
+    <title>P2P Chat - Mirror</title>
+    <link rel="stylesheet" href="p2p.css">
 </head>
 
 <body>
-    <h1>P2P Chat - Server 1</h1>
+    <h1>P2P Chat - Mirror</h1>
 
     <p id="status"></p>
     <p id="peers"><b>Active Peers:</b> <span id="peerCount">0</span></p>
@@ -50,7 +51,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
 
     <script>
-        // Setup - Connect to BOTH servers for redundancy
+        // Setup - Connect to local servers only
         const gun = Gun([
             "http://localhost:8765/gun",
             "http://localhost:8766/gun"
@@ -58,11 +59,22 @@
 
         const user = gun.user();
 
+        /*
+        gun.on("out", (msg) => {
+            console.log("Gun message:", msg);
+        });
+
+        gun.on("in", (msg) => {
+            console.log("IN:", msg);
+        });
+        */
+
         // Monitor active peers
         setInterval(() => {
             if (gun._.opt.peers) {
                 const peerCount = Object.keys(gun._.opt.peers).length;
                 $("#peerCount").text(peerCount);
+                console.log("Peers:", gun._.opt.peers);
             }
         }, 1000);
 
@@ -90,66 +102,6 @@
             $("#pubkey").text("");
         }
 
-        // Render message (robust against object values)
-        function renderMessage(data, id) {
-            if (!data) return;
-
-            const key = String(id);
-
-            let line = "";
-            if (typeof data === "object") {
-                const n = (data.name || "").trim();
-                const t = (data.text || "").trim();
-                line = n ? (n + ": " + t) : t;   // wenn kein name -> nur text
-            } else {
-                line = String(data);
-            }
-
-            if (!line) return;
-
-            let li = $("#" + key);
-            if (!li.length) {
-                li = $("<li>").attr("id", key).appendTo($("#messages"));
-            }
-            li.text(line);
-        }
-
-        // Get public key
-        function displayPubKey() {
-            user.get("pub").once((pub) => {
-                $("#pubkey").text(pub);
-            });
-        }
-
-        // Initial setup
-        user.on("auth", () => {
-            setStatus("Logged in");
-            showApp();
-            displayPubKey();
-            loadProfile();
-            loadMessages();
-        });
-
-        user.on("create", () => {
-            user.on("auth", () => {
-                setStatus("Account created!");
-                showApp();
-                displayPubKey();
-            });
-        });
-
-        // Sign In
-        $("#in").on("click", (e) => {
-            e.preventDefault();
-            const alias = $("#alias").val();
-            const pass = $("#pass").val();
-            user.auth(alias, pass, (ack) => {
-                if (ack.err) {
-                    setStatus("Error: " + ack.err);
-                }
-            });
-        });
-
         // Sign Up
         $("#up").on("click", () => {
             const alias = $("#alias").val();
@@ -159,6 +111,36 @@
                     setStatus("Error: " + ack.err);
                 } else {
                     setStatus("Account created! Sign in now.");
+                }
+            });
+        });
+
+        // Sign In
+        $("#in").on("click", (e) => {
+            e.preventDefault();
+
+            const alias = $("#alias").val();
+            const pass = $("#pass").val();
+
+            setStatus("Wait...");
+            console.log("Attempting auth for user:", alias);
+
+            user.auth(alias, pass, (ack) => {
+                console.log("ACK:", ack);
+                console.log("ack.err:", ack && ack.err);
+                console.log("ack.ok:", ack && ack.ok);
+                console.log("user.is:", user.is); // sehr wichtig
+
+                if (ack && ack.err) {
+                    setStatus("Error: " + ack.err);
+                    console.error("Auth error:", ack.err);
+                } else if (user.is) {
+                    console.log("AUTH SUCCESS!");
+                    setStatus("Logged in");
+                    showApp();
+                    displayPubKey();
+                    loadProfile();
+                    loadMessages();
                 }
             });
         });
@@ -185,22 +167,54 @@
             });
         }
 
+        // Get public key
+        function displayPubKey() {
+            user.get("pub").once((pub) => {
+                $("#pubkey").text(pub);
+            });
+        }
+
         // Send message
         $("#speak").on("click", (e) => {
             e.preventDefault();
-            const text = $("#say").val();
-            if (text) {
-                user.get("said").set({ text: text });
-                $("#say").val("");
-            }
+            const message = $("#say").val().trim();
+            if (!message) return;
+
+            gun.get("messages").set({
+                text: message,
+                name: $("#name").val() || user.is?.alias || "anon",
+                pub: user.is?.pub,
+                at: Date.now()
+            });
+
+            $("#say").val("");
+            renderMessage();
+
         });
 
-        // Load messages
+        // Render message (robust against object values)
+        function renderMessage(data, id) {
+            if (!data) return;
+
+            const line = typeof data === "object"
+                ? ((data.name ? data.name + ": " : "") + (data.text || "") + (data.at ? " (" + new Date(data.at).toLocaleTimeString() + ")" : "")).trim()
+                : String(data).trim();
+
+            if (!line) return;
+
+            let li = $(`#messages li[data-id="${id}"]`);
+            if (!li.length) {
+                li = $("<li>").attr("data-id", id).prependTo("#messages");
+            }
+            li.text(line);
+        }
+
         function loadMessages() {
             gun.get("messages").map().on((data, id) => {
                 renderMessage(data, id);
             });
         }
+
 
         // Exit
         $("#exit").on("click", () => {
@@ -213,5 +227,3 @@
 </body>
 
 </html>
-
-

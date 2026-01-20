@@ -51,32 +51,45 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
 
     <script>
-        // Setup - Connect to local servers only
-        const gun = Gun([
-            "http://localhost:8765/gun",
-            "http://localhost:8766/gun"
-        ]);
 
+        // Initialize Gun with a single peer (Server 1)
+        const gun = Gun({
+            peers: ["http://localhost:8765/gun"],
+            localStorage: true
+        });
+
+        // Alternatively, connect to multiple relays
+        // const gun = Gun([
+        //     "http://localhost:8765/gun",
+        //     "http://localhost:8766/gun"
+        // ]);
+
+
+        // User instance
         const user = gun.user();
+        let messagesLoaded = false;
 
-        /*
+        // Define room and message node
+        const room = "room:demo";
+        const msgNode = gun.get("app").get(room).get("messages");
+
+        // Debugging Gun messages
         gun.on("out", (msg) => {
             console.log("Gun message:", msg);
         });
-
         gun.on("in", (msg) => {
             console.log("IN:", msg);
         });
-        */
+
 
         // Monitor active peers
         setInterval(() => {
-            if (gun._.opt.peers) {
-                const peerCount = Object.keys(gun._.opt.peers).length;
-                $("#peerCount").text(peerCount);
-                console.log("Peers:", gun._.opt.peers);
-            }
-        }, 1000);
+            const peers = Object.keys(gun._.opt.peers || {});
+            $("#peerCount").text(peers.length);
+            console.log("PEERS:", peers);
+        }, 3000);
+
+
 
         //  Help function
         function setStatus(text) {
@@ -145,6 +158,25 @@
             });
         });
 
+        // Auto re-authenticate if session exists
+        user.recall({ sessionStorage: true });
+
+        // On re-authentication
+        gun.on("auth", () => {
+            console.log("re-authenticated");
+            setStatus("Logged in");
+            showApp();
+            displayPubKey();
+            loadProfile();
+            loadMessages();
+        });
+
+        // Detect page reload
+        window.addEventListener("beforeunload", () => {
+            console.warn(" PAGE RELOAD DETECTED");
+        });
+
+
         // Save profile
         $("#save").on("click", (e) => {
             e.preventDefault();
@@ -175,12 +207,12 @@
         }
 
         // Send message
-        $("#speak").on("click", (e) => {
+        $("#said").on("submit", (e) => {
             e.preventDefault();
             const message = $("#say").val().trim();
             if (!message) return;
 
-            gun.get("messages").set({
+            msgNode.set({
                 text: message,
                 name: $("#name").val() || user.is?.alias || "anon",
                 pub: user.is?.pub,
@@ -188,8 +220,6 @@
             });
 
             $("#say").val("");
-            renderMessage();
-
         });
 
         // Render message (robust against object values)
@@ -209,12 +239,18 @@
             li.text(line);
         }
 
+        // Load messages
         function loadMessages() {
-            gun.get("messages").map().on((data, id) => {
+            if (messagesLoaded) return;
+            messagesLoaded = true;
+
+            msgNode.map().on((data, id) => {
+                if (!id || id === "_" || !data || !data.text) return;
+                console.log("RECV", id, data);
                 renderMessage(data, id);
             });
-        }
 
+        }
 
         // Exit
         $("#exit").on("click", () => {
@@ -223,6 +259,11 @@
             hideApp();
             setStatus("Logged out");
         });
+
+        // Initial status
+        loadMessages();
+        setStatus("ready");
+
     </script>
 </body>
 

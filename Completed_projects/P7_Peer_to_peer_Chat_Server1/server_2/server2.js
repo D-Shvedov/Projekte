@@ -12,10 +12,8 @@ app.get("/", (req, res) => {
 
 const server = http.createServer(app);
 
-Gun({
-  web: server,
-  file: path.join(__dirname, "radata")
-});
+Gun({ web: server, file: false });
+
 
 server.listen(8766, "0.0.0.0", () => {
   console.log("GUN Server 2 running on http://localhost:8766");

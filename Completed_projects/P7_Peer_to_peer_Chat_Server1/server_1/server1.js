@@ -1,22 +1,24 @@
+// server.js
 const express = require("express");
-const Gun = require("gun");
-const path = require("path");
 const http = require("http");
+const path = require("path");
 
 const app = express();
-app.use(express.static(path.join(__dirname, "../public")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/sign.html"));
-});
+app.use(express.static(path.join(__dirname, "public")));
 
 const server = http.createServer(app);
 
+const Gun = require("gun");
+
 Gun({
   web: server,
-  file: path.join(__dirname, "radata")
+  file: false,
+  axe: false,
+  multicast: false
 });
 
-server.listen(8765, "0.0.0.0", () => {
-  console.log("GUN Server 1 running on http://localhost:8765");
+const PORT = 8765;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`App:   http://localhost:${PORT}/`);
+  console.log(`Relay: http://localhost:${PORT}/gun`);
 });

@@ -12,8 +12,8 @@ The application allows multiple peers to exchange messages directly via a relay,
 - **Languages:** JavaScript, HTML, CSS
 - **Framework:** Express.js (Relay only)
 - **Library:** Gun.js
-- **Database:** - IndexedDB / localStorage
-- **Additional technology:** : SEA (encryption, authentication), JQuery
+- **Database:** IndexedDB / localStorage
+- **Additional technology:** SEA (encryption, authentication), JQuery
 
 ## Description
 

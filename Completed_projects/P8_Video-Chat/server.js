@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // Use environment variable or default to 3000
 
 app.use(express.static("public"));
 
@@ -36,6 +36,4 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server running on port: http://localhost:${port}/`);
-});
+server.listen(port);

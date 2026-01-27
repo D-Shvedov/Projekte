@@ -1,5 +1,8 @@
-const socket = io("http://localhost:3000");
-const room = "myRoom";
+const socket = io();
+
+const params = new URLSearchParams(window.location.search);
+const room = params.get("room") || "myRoom";
+
 
 let peerConnection;
 let localStream;

@@ -1,5 +1,6 @@
 const socket = io();
 
+// Raum aus URL-Parameter oder Standardwert
 const params = new URLSearchParams(window.location.search);
 const room = params.get("room") || "myRoom";
 
@@ -9,10 +10,14 @@ socket.on("roomFull", () => {
   // window.location.href = "/";
 });
 
+// Verwaltung der Peer-Verbindungen und ICE-Kandidaten
 const peerConnections = new Map(); // remoteUserId -> RTCPeerConnection
 const pendingIce = new Map(); // remoteUserId -> RTCIceCandidate[]
+
+// Lokaler Medienstream
 let localStream;
 
+// ICE-Server vom Server abrufen
 async function fetchIceServers() {
   const res = await fetch("/ice");
   if (!res.ok) throw new Error("Failed to fetch /ice");
@@ -23,7 +28,7 @@ async function fetchIceServers() {
 async function ensureLocalStream() {
   if (localStream) return localStream;
 
-  // ✅ Bandbreite reduzieren (500MB Trial schonen)
+  // ✅ Bandbreite reduzieren 
   localStream = await navigator.mediaDevices.getUserMedia({
     video: {
       width: { ideal: 640 },
@@ -32,23 +37,28 @@ async function ensureLocalStream() {
     },
     audio: true,
   });
-
+  // Anzeige des lokalen Videos
   const localVideo = document.getElementById("localVideo");
   localVideo.srcObject = localStream;
   localVideo.muted = true; // wichtig für autoplay
-  await localVideo.play().catch(() => {});
+  await localVideo.play().catch(() => { });
 
   return localStream;
 }
 
+// PeerConnection für einen Remote-Nutzer abrufen oder erstellen
 async function getOrCreatePC(remoteUserId) {
   await ensureLocalStream();
 
   if (peerConnections.has(remoteUserId)) return peerConnections.get(remoteUserId);
 
+  // ICE-Server abrufen
   const iceServers = await fetchIceServers();
+
+  // Neue RTCPeerConnection erstellen
   const pc = new RTCPeerConnection({ iceServers });
 
+  // Verbindungsstatus protokollieren
   pc.onconnectionstatechange = () => {
     console.log("connectionState", remoteUserId, pc.connectionState);
   };
@@ -59,12 +69,14 @@ async function getOrCreatePC(remoteUserId) {
     console.log("signalingState", remoteUserId, pc.signalingState);
   };
 
+  // ICE-Kandidaten sammeln und senden
   pc.onicecandidate = (event) => {
     if (event.candidate) {
       socket.emit("iceCandidate", { candidate: event.candidate, to: remoteUserId });
     }
   };
 
+  // Remote-Stream empfangen
   pc.ontrack = (event) => {
     const remoteVideo = document.getElementById("remoteVideo");
     const stream = event.streams[0];
@@ -73,23 +85,26 @@ async function getOrCreatePC(remoteUserId) {
     // ✅ verhindert AbortError
     if (remoteVideo.srcObject !== stream) {
       remoteVideo.srcObject = stream;
-      remoteVideo.play().catch(() => {});
+      remoteVideo.play().catch(() => { });
     }
   };
 
   // add local tracks
   localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
+  // Verbindung speichern
   peerConnections.set(remoteUserId, pc);
   if (!pendingIce.has(remoteUserId)) pendingIce.set(remoteUserId, []);
   return pc;
 }
 
+// Socket.IO-Ereignisse behandeln
 socket.on("connect", () => {
   console.log("connected:", socket.id);
   socket.emit("joinRoom", room);
 });
 
+// Bestehende Nutzer im Raum
 socket.on("existingUsers", async (users) => {
   // only the new joiner creates offers to existing users
   for (const userId of users) {
@@ -102,16 +117,18 @@ socket.on("existingUsers", async (users) => {
   }
 });
 
+// Neuer Nutzer ist dem Raum beigetreten
 socket.on("userJoined", (userId) => {
   console.log("New user joined:", userId);
   // existing side does nothing (avoids offer glare)
 });
 
+// Angebot vom Remote-Nutzer empfangen
 socket.on("offer", async ({ offer, from }) => {
   const pc = await getOrCreatePC(from);
   await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
-  // flush buffered ICE
+  // Verarbeitete zwischengespeicherte ICE-Kandidaten
   const buf = pendingIce.get(from) || [];
   while (buf.length) {
     const c = buf.shift();
@@ -129,12 +146,14 @@ socket.on("offer", async ({ offer, from }) => {
   socket.emit("answer", { answer, to: from });
 });
 
+// Antwort vom Remote-Nutzer empfangen
 socket.on("answer", async ({ answer, from }) => {
   const pc = peerConnections.get(from);
   if (!pc) return;
   await pc.setRemoteDescription(new RTCSessionDescription(answer));
 });
 
+// ICE-Kandidat vom Remote-Nutzer empfangen
 socket.on("iceCandidate", async ({ candidate, from }) => {
   const pc = peerConnections.get(from);
 
@@ -152,6 +171,7 @@ socket.on("iceCandidate", async ({ candidate, from }) => {
   }
 });
 
+// Nutzer hat den Raum verlassen
 socket.on("userLeft", (userId) => {
   console.log("userLeft:", userId);
 

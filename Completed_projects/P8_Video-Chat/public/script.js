@@ -2,9 +2,12 @@ const socket = io();
 const params = new URLSearchParams(window.location.search);
 const room = params.get("room") || "myRoom";
 
+socket.on("roomFull", () => {
+  alert("Room ist voll (max 2 Teilnehmer).");
+});
+
 const peerConnections = new Map();      // remoteUserId -> RTCPeerConnection
 const pendingIce = new Map();           // remoteUserId -> RTCIceCandidate[]
-
 let localStream;
 
 async function ensureLocalStream() {
@@ -23,6 +26,19 @@ async function getOrCreatePC(remoteUserId) {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   });
 
+  pc.onconnectionstatechange = () => {
+    console.log("connectionState", remoteUserId, pc.connectionState);
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.log("iceConnectionState", remoteUserId, pc.iceConnectionState);
+  };
+
+  pc.onsignalingstatechange = () => {
+    console.log("signalingState", remoteUserId, pc.signalingState);
+  };
+
+
   pc.onicecandidate = (event) => {
     if (event.candidate) {
       socket.emit("iceCandidate", { candidate: event.candidate, to: remoteUserId });
@@ -30,8 +46,11 @@ async function getOrCreatePC(remoteUserId) {
   };
 
   pc.ontrack = (event) => {
-    document.getElementById("remoteVideo").srcObject = event.streams[0];
+    const remoteVideo = document.getElementById("remoteVideo");
+    remoteVideo.srcObject = event.streams[0];
+    remoteVideo.play?.().catch(e => console.warn("remote play blocked", e));
   };
+
 
   localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
@@ -41,6 +60,7 @@ async function getOrCreatePC(remoteUserId) {
 }
 
 socket.on("connect", () => socket.emit("joinRoom", room));
+
 
 socket.on("existingUsers", async (users) => {
   // Nur der neu beigetretene ruft Offers an bestehende Teilnehmer raus

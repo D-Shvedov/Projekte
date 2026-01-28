@@ -12,17 +12,21 @@ app.use(express.static("public"));
 
 io.on("connection", (socket) => {
   socket.on("joinRoom", async (room) => {
+    // Erst schauen, wie viele schon drin sind (ohne dass der neue joint)
+    const socketsInRoom = await io.in(room).fetchSockets();
+
+    if (socketsInRoom.length >= 2) {
+      socket.emit("roomFull");
+      return;
+    }
+
+    // Jetzt erst beitreten
     socket.join(room);
 
-    // Sende dem neuen Client die Liste der bereits im Raum befindlichen Sockets
-    const socketsInRoom = await io.in(room).fetchSockets();
-    const others = socketsInRoom
-      .map(s => s.id)
-      .filter(id => id !== socket.id);
+    // "others" = alle bisherigen Teilnehmer (max 1)
+    const others = socketsInRoom.map(s => s.id);
 
     socket.emit("existingUsers", others);
-
-    // Informiere die anderen, dass ein neuer da ist
     socket.to(room).emit("userJoined", socket.id);
   });
 
@@ -38,6 +42,7 @@ io.on("connection", (socket) => {
     io.to(to).emit("iceCandidate", { candidate, from: socket.id });
   });
 });
+
 
 
 server.listen(port);

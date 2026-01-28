@@ -1,19 +1,43 @@
 const socket = io();
+
 const params = new URLSearchParams(window.location.search);
 const room = params.get("room") || "myRoom";
 
 socket.on("roomFull", () => {
   alert("Room ist voll (max 2 Teilnehmer).");
+  // optional:
+  // window.location.href = "/";
 });
 
-const peerConnections = new Map();      // remoteUserId -> RTCPeerConnection
-const pendingIce = new Map();           // remoteUserId -> RTCIceCandidate[]
+const peerConnections = new Map(); // remoteUserId -> RTCPeerConnection
+const pendingIce = new Map(); // remoteUserId -> RTCIceCandidate[]
 let localStream;
+
+async function fetchIceServers() {
+  const res = await fetch("/ice");
+  if (!res.ok) throw new Error("Failed to fetch /ice");
+  const data = await res.json();
+  return data.iceServers;
+}
 
 async function ensureLocalStream() {
   if (localStream) return localStream;
-  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  document.getElementById("localVideo").srcObject = localStream;
+
+  // ✅ Bandbreite reduzieren (500MB Trial schonen)
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      width: { ideal: 640 },
+      height: { ideal: 360 },
+      frameRate: { max: 15 },
+    },
+    audio: true,
+  });
+
+  const localVideo = document.getElementById("localVideo");
+  localVideo.srcObject = localStream;
+  localVideo.muted = true; // wichtig für autoplay
+  await localVideo.play().catch(() => {});
+
   return localStream;
 }
 
@@ -22,22 +46,18 @@ async function getOrCreatePC(remoteUserId) {
 
   if (peerConnections.has(remoteUserId)) return peerConnections.get(remoteUserId);
 
-  const pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-  });
+  const iceServers = await fetchIceServers();
+  const pc = new RTCPeerConnection({ iceServers });
 
   pc.onconnectionstatechange = () => {
     console.log("connectionState", remoteUserId, pc.connectionState);
   };
-
   pc.oniceconnectionstatechange = () => {
     console.log("iceConnectionState", remoteUserId, pc.iceConnectionState);
   };
-
   pc.onsignalingstatechange = () => {
     console.log("signalingState", remoteUserId, pc.signalingState);
   };
-
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
@@ -47,48 +67,65 @@ async function getOrCreatePC(remoteUserId) {
 
   pc.ontrack = (event) => {
     const remoteVideo = document.getElementById("remoteVideo");
-    remoteVideo.srcObject = event.streams[0];
-    remoteVideo.play?.().catch(e => console.warn("remote play blocked", e));
+    const stream = event.streams[0];
+    console.log("ontrack fired from", remoteUserId);
+
+    // ✅ verhindert AbortError
+    if (remoteVideo.srcObject !== stream) {
+      remoteVideo.srcObject = stream;
+      remoteVideo.play().catch(() => {});
+    }
   };
 
-
+  // add local tracks
   localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
   peerConnections.set(remoteUserId, pc);
-  pendingIce.set(remoteUserId, []);
+  if (!pendingIce.has(remoteUserId)) pendingIce.set(remoteUserId, []);
   return pc;
 }
 
-socket.on("connect", () => socket.emit("joinRoom", room));
-
+socket.on("connect", () => {
+  console.log("connected:", socket.id);
+  socket.emit("joinRoom", room);
+});
 
 socket.on("existingUsers", async (users) => {
-  // Nur der neu beigetretene ruft Offers an bestehende Teilnehmer raus
+  // only the new joiner creates offers to existing users
   for (const userId of users) {
     const pc = await getOrCreatePC(userId);
+
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
+
     socket.emit("offer", { offer, to: userId });
   }
 });
 
-socket.on("userJoined", async (userId) => {
-  // Bestehende Clients warten – sie bekommen gleich ein Offer vom Neuen über existingUsers-Logik
-  // (So vermeidest du Offer-Glare.)
+socket.on("userJoined", (userId) => {
   console.log("New user joined:", userId);
+  // existing side does nothing (avoids offer glare)
 });
 
 socket.on("offer", async ({ offer, from }) => {
   const pc = await getOrCreatePC(from);
   await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
-  // Buffered ICE flushen
+  // flush buffered ICE
   const buf = pendingIce.get(from) || [];
-  while (buf.length) await pc.addIceCandidate(buf.shift());
+  while (buf.length) {
+    const c = buf.shift();
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(c));
+    } catch (e) {
+      console.warn("addIceCandidate (buffer) failed", e);
+    }
+  }
   pendingIce.set(from, buf);
 
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
+
   socket.emit("answer", { answer, to: from });
 });
 
@@ -100,13 +137,33 @@ socket.on("answer", async ({ answer, from }) => {
 
 socket.on("iceCandidate", async ({ candidate, from }) => {
   const pc = peerConnections.get(from);
+
   if (!pc || !pc.remoteDescription) {
     const buf = pendingIce.get(from) || [];
     buf.push(candidate);
     pendingIce.set(from, buf);
     return;
   }
-  await pc.addIceCandidate(new RTCIceCandidate(candidate));
+
+  try {
+    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch (e) {
+    console.warn("addIceCandidate failed", e);
+  }
 });
 
-ensureLocalStream().catch(console.error);
+socket.on("userLeft", (userId) => {
+  console.log("userLeft:", userId);
+
+  const pc = peerConnections.get(userId);
+  if (pc) pc.close();
+
+  peerConnections.delete(userId);
+  pendingIce.delete(userId);
+
+  const remoteVideo = document.getElementById("remoteVideo");
+  if (remoteVideo?.srcObject) remoteVideo.srcObject = null;
+});
+
+// start camera
+ensureLocalStream().catch((e) => console.error("getUserMedia failed", e));

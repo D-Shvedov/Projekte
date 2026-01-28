@@ -1,129 +1,92 @@
 const socket = io();
-
 const params = new URLSearchParams(window.location.search);
 const room = params.get("room") || "myRoom";
 
+const peerConnections = new Map();      // remoteUserId -> RTCPeerConnection
+const pendingIce = new Map();           // remoteUserId -> RTCIceCandidate[]
 
-let peerConnection;
 let localStream;
 
-// ICE candidates that arrive before remoteDescription is set
-const pendingIce = [];
-
-// Get user media
 async function ensureLocalStream() {
   if (localStream) return localStream;
-
-  localStream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true,
-  });
-
-  const localVideo = document.getElementById("localVideo");
-  localVideo.srcObject = localStream;
-
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  document.getElementById("localVideo").srcObject = localStream;
   return localStream;
 }
 
-// Socket.io signaling handlers
-socket.on("connect", () => {
-  console.log("Connected to signaling server");
-  socket.emit("joinRoom", room);
-});
-
-// When a new user joins the room
-socket.on("userJoined", (userId) => {
-  console.log(`User ${userId} joined the room`);
-  createOffer(userId);
-});
-
-// Create Peer Connection
-async function createPeerConnection(remoteUserId) {
+async function getOrCreatePC(remoteUserId) {
   await ensureLocalStream();
 
-  peerConnection = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" },
-    ],
+  if (peerConnections.has(remoteUserId)) return peerConnections.get(remoteUserId);
+
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
   });
 
-  peerConnection.onicecandidate = (event) => {
+  pc.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log("ICE candidate:", event.candidate);
-      socket.emit("iceCandidate", event.candidate, room);
+      socket.emit("iceCandidate", { candidate: event.candidate, to: remoteUserId });
     }
   };
 
-  peerConnection.ontrack = (event) => {
-    console.log("Track event:", event);
-    const remoteVideo = document.getElementById("remoteVideo");
-    remoteVideo.srcObject = event.streams[0];
+  pc.ontrack = (event) => {
+    document.getElementById("remoteVideo").srcObject = event.streams[0];
   };
 
-  localStream.getTracks().forEach((track) => {
-    peerConnection.addTrack(track, localStream);
-  });
+  localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
-  return peerConnection;
+  peerConnections.set(remoteUserId, pc);
+  pendingIce.set(remoteUserId, []);
+  return pc;
 }
 
-// Receive ICE
-socket.on("iceCandidate", async (candidate, userId) => {
-  console.log("Received ICE candidate from " + userId);
+socket.on("connect", () => socket.emit("joinRoom", room));
 
-  if (!peerConnection || !peerConnection.remoteDescription) {
-    pendingIce.push(candidate);
+socket.on("existingUsers", async (users) => {
+  // Nur der neu beigetretene ruft Offers an bestehende Teilnehmer raus
+  for (const userId of users) {
+    const pc = await getOrCreatePC(userId);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit("offer", { offer, to: userId });
+  }
+});
+
+socket.on("userJoined", async (userId) => {
+  // Bestehende Clients warten – sie bekommen gleich ein Offer vom Neuen über existingUsers-Logik
+  // (So vermeidest du Offer-Glare.)
+  console.log("New user joined:", userId);
+});
+
+socket.on("offer", async ({ offer, from }) => {
+  const pc = await getOrCreatePC(from);
+  await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+  // Buffered ICE flushen
+  const buf = pendingIce.get(from) || [];
+  while (buf.length) await pc.addIceCandidate(buf.shift());
+  pendingIce.set(from, buf);
+
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  socket.emit("answer", { answer, to: from });
+});
+
+socket.on("answer", async ({ answer, from }) => {
+  const pc = peerConnections.get(from);
+  if (!pc) return;
+  await pc.setRemoteDescription(new RTCSessionDescription(answer));
+});
+
+socket.on("iceCandidate", async ({ candidate, from }) => {
+  const pc = peerConnections.get(from);
+  if (!pc || !pc.remoteDescription) {
+    const buf = pendingIce.get(from) || [];
+    buf.push(candidate);
+    pendingIce.set(from, buf);
     return;
   }
-
-  try {
-    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-  } catch (e) {
-    console.error("Error adding received ice candidate", e);
-  }
+  await pc.addIceCandidate(new RTCIceCandidate(candidate));
 });
 
-// Create and send offer
-async function createOffer(remoteUserId) {
-  const pc = await createPeerConnection(remoteUserId);
-  peerConnection = pc;
-
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-
-  socket.emit("offer", offer, room);
-}
-
-socket.on("offer", async (offer, userId) => {
-  console.log("Received offer from " + userId);
-
-  const pc = await createPeerConnection(userId);
-  peerConnection = pc;
-
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-
-  // Add buffered ICE
-  while (pendingIce.length) {
-    const c = pendingIce.shift();
-    try {
-      await peerConnection.addIceCandidate(new RTCIceCandidate(c));
-    } catch (e) {
-      console.error("Error adding buffered ice candidate", e);
-    }
-  }
-
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-
-  socket.emit("answer", answer, room);
-});
-
-// Receive answer
-socket.on("answer", async (answer, userId) => {
-  console.log("Received answer from " + userId);
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-});
-
-// start camera immediately (optional, ensureLocalStream also does this)
-ensureLocalStream().catch((e) => console.error("getUserMedia failed", e));
+ensureLocalStream().catch(console.error);

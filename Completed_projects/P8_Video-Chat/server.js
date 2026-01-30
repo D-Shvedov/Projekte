@@ -1,3 +1,4 @@
+// Importiere die benötigten Module
 const express = require("express");
 // HTTP-Modul von Node.js
 const http = require("http");

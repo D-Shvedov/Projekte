@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat-Roulette</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="regestration">
+        <h1>Regestration</h1>
+        <p>You can have fun with Chat-Roulette app, but at first you should make registration.</p>
+        <h2>Sign up</h2>
+        <form id="sign_up">
+            <label for="login">Login</label>
+            <input type="text" id="login" name="login">
+            <label for="passwort">Passwort</label>
+            <input type="text" id="passwort" name="passwort">
+            <button id="sign_up_btn" type="submit">Confirm</button>
+        </form>
+        <h2>Sign in</h2>
+        <form id="sign_in">
+            <label for="login">Login</label>
+            <input type="text" id="login" name="login">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password">
+            <button id="sign_ip_btn" type="submit">Confirm</button>
+        </form>
+        <p>Status: <b id="status_registration">...</b></p>
+    </div>
+    <div class="profil">
+        <h2>Profil</h2>
+        <form id="profil_entries">
+            <label for="nickname">Nickname</label>
+            <input type="text" id="nickname" name="nickname" required>
+            <label for="bithday">Bithday</label>
+            <input type="date" id="bithday" name="bithday">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location">
+            <button id="profil_btn" type="submit">Confirm</button>
+        </form>
+        <br>
+        <h2>Roulette</h2>
+        <div class="videos">
+            <h3>Local</h3>
+            <video id="localVideo" autoplay playsinline muted></video>
+            <h3>Remote</h3>
+            <video id="remoteVideo" autoplay playsinline></video>
+        </div>
+        <div class="chat">
+            <form id="chat">
+                <input id="message" placeholder="Nachricht schreiben…">
+                <button type="button">
+                    Senden
+                </button>
+                <div id="correspondence"></div>
+            </form>
+            <br>
+        </div>
+        <div class="buttons_roulette">
+            <button id="play_btn">Contact</button>
+            <button id="exit_btn">Exit</button>
+            <p>Status: <b id="status_roulette"></b></p>
+        </div>
+    </div>
+    <button id="log_out">Log out</button>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

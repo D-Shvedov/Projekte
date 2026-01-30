@@ -49,6 +49,6 @@ Socket.IO is used for signaling messages such as:
 ## Installation
 
 ```bash
-npm install express socket.io
+npm install
 npm express
 npm socket.io

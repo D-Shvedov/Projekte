@@ -2,7 +2,7 @@
 
 > A simple WebRTC video chat app that establishes real-time video and audio between two users.
 
-![This is the schema](./images/Video-chat.jpg)
+![Video Chat Screenshot](./images/Video-chat.jpg)
 
 ## Project characteristics
 

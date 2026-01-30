@@ -10,12 +10,13 @@ const server = http.createServer(app);
 // Erstelle eine neue Socket.IO-Instanz, die den HTTP-Server verwendet
 const io = new Server(server);
 
+// Port aus Umgebungsvariable oder Standardport 3000 
 const port = process.env.PORT || 3000;
 
 // lädt automatisch public/index.html. Macht den Ordner public/ öffentlich erreichbar
 app.use(express.static("public"));
 
-
+// Endpoint zum Abrufen der ICE-Server-Konfiguration
 app.get("/ice", (req, res) => {
   const username = process.env.METERED_USER;
   const credential = process.env.METERED_PASS;

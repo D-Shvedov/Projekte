@@ -16,7 +16,7 @@ const pool = new Pool({
 module.exports = pool;
 
 
-const SALT_ROUNDS = process.env.SALT_ROUNDS || 12;
+const SALT_ROUNDS = Number.parseInt(process.env.SALT_ROUNDS ?? "12", 10);
 const port = process.env.PORT || 3000;
 
 app.use(express.static("public"));

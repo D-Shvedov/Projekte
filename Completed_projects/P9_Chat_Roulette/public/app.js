@@ -1,7 +1,8 @@
 //  Help function
-function setStatus(text) {
-    document.getElementById("status").textContent = text;
+function setStatusReg(text) {
+    document.getElementById("status_registration").textContent = text;
 }
+
 function showApp() {
     document.querySelector(".regestration").style.display = "none";
     document.querySelector(".profil").style.display = "block";
@@ -14,7 +15,7 @@ document.getElementById("sign_up").addEventListener("submit", async (e) => {
     const login = document.getElementById("login_up").value;
     const password = document.getElementById("password_up").value;
 
-    setStatus("Wait...");
+    setStatusReg("Wait...");
 
     try {
         const res = await fetch("/api/sign_up", {
@@ -26,12 +27,12 @@ document.getElementById("sign_up").addEventListener("submit", async (e) => {
         const data = await res.json();
 
         if (res.ok) {
-            setStatus("Created");
+            setStatusReg("Created");
         } else {
-            setStatus(data.error || 'Error');
+            setStatusReg(data.error || 'Error');
         }
     } catch (err) {
-        setStatus("Network error")
+        setStatusReg("Network error")
     }
 });
 
@@ -43,7 +44,7 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
     const login = document.getElementById("login_in").value;
     const password = document.getElementById("password_in").value;
 
-    setStatus("Wait...");
+    setStatusReg("Wait...");
 
     try {
         const res = await fetch("/api/sign_in", {
@@ -55,13 +56,14 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
         const data = await res.json()
 
         if (res.ok) {
-            setStatus("Succeeded");
+            setStatusReg("Succeeded");
             localStorage.setItem("login", login);
+            showApp()
         } else {
-            setStatus(data.error || 'Error');
+            setStatusReg(data.error || 'Error');
         }
     } catch (err) {
-        setStatus("Network error")
+        setStatusReg("Network error")
     }
 });
 

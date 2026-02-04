@@ -28,7 +28,7 @@ async function fetchIceServers() {
 async function ensureLocalStream() {
   if (localStream) return localStream;
 
-  // ✅ Bandbreite reduzieren 
+  // Bandbreite reduzieren 
   localStream = await navigator.mediaDevices.getUserMedia({
     video: {
       width: { ideal: 640 },
@@ -82,7 +82,7 @@ async function getOrCreatePC(remoteUserId) {
     const stream = event.streams[0];
     console.log("ontrack fired from", remoteUserId);
 
-    // ✅ verhindert AbortError
+    //  verhindert AbortError
     if (remoteVideo.srcObject !== stream) {
       remoteVideo.srcObject = stream;
       remoteVideo.play().catch(() => { });

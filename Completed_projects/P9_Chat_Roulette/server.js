@@ -15,7 +15,7 @@ const pool = new Pool({
 
 module.exports = pool;
 
-
+// Number.parseInt (..., 10) string in dezimalsystem
 const SALT_ROUNDS = Number.parseInt(process.env.SALT_ROUNDS ?? "12", 10);
 const port = process.env.PORT || 3000;
 
@@ -45,7 +45,7 @@ app.post("/api/sign_up", async (req, res) => {
         const password_hash = await hashPassword(password);
 
         await pool.query(
-            "INSERT INTO users (login, password_hash) VALUES ($1, $2)",
+            "INSERT INTO accounts (login, password_hash) VALUES ($1, $2)",
             [login, password_hash]
         );
 
@@ -72,7 +72,7 @@ app.post("/api/sign_in", async (req, res) => {
         }
 
         const dbRes = await pool.query(
-            "SELECT password_hash FROM users WHERE login = $1",
+            "SELECT password_hash FROM accounts WHERE login = $1",
             [login]
         );
 

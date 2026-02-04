@@ -20,6 +20,8 @@ const SALT_ROUNDS = process.env.SALT_ROUNDS || 12;
 const port = process.env.PORT || 3000;
 
 app.use(express.static("public"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // hashing password
 async function hashPassword(password) {

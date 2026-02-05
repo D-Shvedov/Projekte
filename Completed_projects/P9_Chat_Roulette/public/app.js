@@ -65,13 +65,14 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
             setStatusReg("Succeeded");
             localStorage.setItem("login", login);
             localStorage.setItem("nickname", nickname);
-            localStorage.setItem("birthday", birthday);
             localStorage.setItem("location", location);
+            localStorage.setItem("birthday", (birthday || "").slice(0, 10));
 
+
+            // value nicht textContent
             document.getElementById("nickname").value = localStorage.getItem("nickname") || "";
-            document.getElementById("birthday").value = localStorage.getItem("birthday") || "";
             document.getElementById("location").value = localStorage.getItem("location") || "";
-
+            document.getElementById("birthday").value = (localStorage.getItem("birthday") || "").slice(0, 10);
             showApp();
         } else {
             setStatusReg(data.error || 'Error');

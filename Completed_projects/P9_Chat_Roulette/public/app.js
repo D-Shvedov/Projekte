@@ -111,8 +111,11 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
 
 // Exit
 function exit()  {
+    localStorage.clear();
+    setStatusProfile("");
+    setStatusReg("");
+    document.getElementById("nickname").textContent = "",
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
-    localStorage.clear();
 }
 

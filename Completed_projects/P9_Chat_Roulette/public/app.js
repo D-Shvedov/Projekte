@@ -113,11 +113,10 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
 function exit()  {
     localStorage.clear();
     sessionStorage.clear();
-    location.reload
-    // setStatusProfile("");
-    // setStatusReg("");
-    // document.getElementById("nickname").textContent = "",
-    // document.querySelector(".regestration").style.display = "block";
-    // document.querySelector(".profile").style.display = "none";
+    setStatusProfile("");
+    setStatusReg("");
+    document.getElementById("nickname").textContent = "",
+    document.querySelector(".regestration").style.display = "block";
+    document.querySelector(".profile").style.display = "none";
 }
 

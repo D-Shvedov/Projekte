@@ -68,9 +68,9 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
             localStorage.setItem("birthday", birthday);
             localStorage.setItem("location", location);
 
-            document.getElementById("nickname").textContent = localStorage.getItem("nickname") || "";
-            document.getElementById("birthday").textContent = localStorage.getItem("birthday") || "";
-            document.getElementById("location").textContent = localStorage.getItem("location") || "";
+            document.getElementById("nickname").value = localStorage.getItem("nickname") || "";
+            document.getElementById("birthday").value = localStorage.getItem("birthday") || "";
+            document.getElementById("location").value = localStorage.getItem("location") || "";
 
             showApp();
         } else {
@@ -115,7 +115,9 @@ function exit()  {
     sessionStorage.clear();
     setStatusProfile("");
     setStatusReg("");
-    document.getElementById("nickname").textContent = "",
+    document.getElementById("nickname").value = "";
+    document.getElementById("birthday").value = "";
+    document.getElementById("location").value = "";
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
 }

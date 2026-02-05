@@ -75,19 +75,21 @@ app.post("/api/sign_in", async (req, res) => {
             return res.status(401).json({ error: "Invalid login or password" });
         }
 
-        const ok = await bcrypt.compare(password, dbRes.rows[0].password_hash);
+        const row = dbRes.rows[0];
+
+        if (!row || !row.password_hash) {
+            return res.status(401).json({ error: "Invalid login or password" });
+        }
+
+        const ok = await bcrypt.compare(password, row.password_hash);
 
         if (!ok) {
             return res.status(401).json({ error: "Invalid login or password" });
         }
 
-        const user = dbRes.rows[0];
+        const { nickname = null, birthday = null, location = null } = row;
 
-        return res.status(200).json({
-            nickname: user.nickname,
-            birthday: user.birthday,
-            location: user.location,
-        });
+        return res.status(200).json({ nickname, birthday, location });
 
     } catch (err) {
         console.error(err);

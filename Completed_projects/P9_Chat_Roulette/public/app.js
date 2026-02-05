@@ -5,7 +5,7 @@ function setStatusReg(text) {
 
 //  Help function
 function setStatusProfile(text) {
-    document.getElementById("status_profil").textContent = text;
+    document.getElementById("status_profile").textContent = text;
 }
 
 function showApp() {
@@ -68,11 +68,11 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
             localStorage.setItem("birthday", birthday);
             localStorage.setItem("location", location);
 
-            document.getElementById("nickname").textContent = localStorage.getItem("nickname")
-            document.getElementById("birthday").textContent = localStorage.getItem("birthday")
-            document.getElementById("location").textContent = localStorage.getItem("location")
+            document.getElementById("nickname").textContent = localStorage.getItem("nickname") || "";
+            document.getElementById("birthday").textContent = localStorage.getItem("birthday") || "";
+            document.getElementById("location").textContent = localStorage.getItem("location") || "";
 
-            showApp()
+            showApp();
         } else {
             setStatusReg(data.error || 'Error');
         }

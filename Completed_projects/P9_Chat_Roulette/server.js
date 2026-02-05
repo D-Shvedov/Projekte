@@ -28,11 +28,6 @@ async function hashPassword(password) {
     return await bcrypt.hash(password, SALT_ROUNDS);
 }
 
-// compare hashpassword
-async function checkPassword(password, passwordHash) {
-    return await bcrypt.compare(password, passwordHash);
-}
-
 // Sign up
 app.post("/api/sign_up", async (req, res) => {
     try {
@@ -72,7 +67,7 @@ app.post("/api/sign_in", async (req, res) => {
         }
 
         const dbRes = await pool.query(
-            "SELECT password_hash FROM accounts WHERE login = $1",
+            "SELECT password_hash, nickname, birthday, location FROM accounts WHERE login = $1",
             [login]
         );
 
@@ -86,12 +81,51 @@ app.post("/api/sign_in", async (req, res) => {
             return res.status(401).json({ error: "Invalid login or password" });
         }
 
-        return res.status(200).json({ message: "Signed in" });
+        return res.status(200).json({
+            nickname: user.nickname,
+            birthday: user.birthday,
+            location: user.location,
+        });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Server error" });
     }
 });
+
+// Save profile
+app.post("/api/profile", async (req, res) => {
+    try {
+        const { nickname, birthday, location, login } = req.body
+
+
+        if (!login) {
+            return res.status(400).json({ error: "Login required" });
+        }
+
+        if (!nickname && !birthday && !location) {
+            return res.status(400).json({ error: "Nothing to update" });
+        }
+
+        await pool.query(
+            `
+            UPDATE accounts
+            SET
+                nickname = $1,
+                birthday = $2,
+                location = $3
+            WHERE login = $4
+            `,
+            [nickname, birthday, location, login]
+        );
+
+        return res.status(200).json({ message: "Profile was saved" })
+
+
+    } catch (err) {
+        return res.status(500).json({ error: "Server error" })
+    }
+})
+
 
 // Verbindung mit STUN und TURN Server
 app.get('/ice', (req, res) => {

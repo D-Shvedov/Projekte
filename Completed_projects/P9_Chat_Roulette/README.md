@@ -29,7 +29,7 @@ Reihenfolge:
 4. Datenbank anlegen +
 5. Tabelle erstellen - users (id, login, password_hash) +
 6. Anmeldung-Mechanismus Frontend-Backend-Hashing-Datenbank
-7.
+7. Profil-Daten
 
 
 process.env.DATABASE_URL
@@ -41,3 +41,13 @@ process.env.METERED_PASS
 Backlog: WebRTC Logik schreiben 
 
 PGPASSWORD=doGEMdzwQUFmOVyaIH5ckV2aGefbEPYO psql -h dpg-d60rbucoud1c73fv838g-a.frankfurt-postgres.render.com -U roulette_user roulette_database
+
+CREATE TABLE accounts (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    login TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    nickname TEXT,
+    birthday DATE,
+    location TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

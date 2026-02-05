@@ -30,17 +30,18 @@
         </form>
         <p>Status: <b id="status_registration">...</b></p>
     </div>
-    <div class="profil" style="display: none;">
+    <div class="profile" style="display: none;">
         <h2>Profil</h2>
-        <form id="profil_entries">
+        <form id="profile_entries">
             <label for="nickname">Nickname</label>
             <input type="text" id="nickname" name="nickname" required>
-            <label for="bithday">Bithday</label>
-            <input type="date" id="bithday" name="bithday">
+            <label for="birthday">Bithday</label>
+            <input type="date" id="birthday" name="birthday">
             <label for="location">Location</label>
             <input type="text" id="location" name="location">
-            <button id="profil_btn" type="submit">Confirm</button>
+            <button id="profile_btn" type="submit">Confirm</button>
         </form>
+        <p>Status: <b id="status_profile">...</b></p>
         <br>
         <h2>Roulette</h2>
         <div class="videos">
@@ -64,9 +65,9 @@
             <button id="exit_btn">Exit</button>
             <p>Status: <b id="status_roulette"></b></p>
         </div>
-    <button id="log_out">Log out</button>
+        <button id="log_out">Log out</button>
     </div>
-    
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>
 </body>

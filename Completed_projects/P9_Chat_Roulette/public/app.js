@@ -109,3 +109,10 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
     }
 });
 
+// Exit
+function exit()  {
+    document.querySelector(".regestration").style.display = "block";
+    document.querySelector(".profile").style.display = "none";
+    localStorage.clear();
+}
+

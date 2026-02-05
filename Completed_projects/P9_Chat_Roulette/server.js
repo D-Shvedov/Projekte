@@ -81,11 +81,14 @@ app.post("/api/sign_in", async (req, res) => {
             return res.status(401).json({ error: "Invalid login or password" });
         }
 
+        const user = dbRes.rows[0];
+
         return res.status(200).json({
             nickname: user.nickname,
             birthday: user.birthday,
             location: user.location,
         });
+
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Server error" });

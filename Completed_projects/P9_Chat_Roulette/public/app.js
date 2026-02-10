@@ -123,16 +123,13 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
     }
 });
 
-/*
+
 // Contact buttom
 document.getElementById("play_btn").addEventListener("click", async (e) => {
-    e.pre
-    try  {
-
-
-    }
+    e.preventDefault();
+    socket.emit("contact");
 }) 
-*/
+
 
 // Exit
 function exit() {

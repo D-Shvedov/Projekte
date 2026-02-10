@@ -13,6 +13,7 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
 
+// export pool for testing
 module.exports = pool;
 
 // Number.parseInt (..., 10) string in dezimalsystem
@@ -20,7 +21,9 @@ const SALT_ROUNDS = Number.parseInt(process.env.SALT_ROUNDS ?? "12", 10);
 const port = process.env.PORT || 3000;
 
 app.use(express.static("public"));
+// Middleware zum Parsen von JSON- und URL-kodierten Daten
 app.use(express.json());
+// Middleware zum Parsen von URL-kodierten Daten (z.B. aus HTML-Formularen)
 app.use(express.urlencoded({ extended: false }));
 
 // hashing password
@@ -129,33 +132,6 @@ app.post("/api/profile", async (req, res) => {
     }
 })
 
-// socket-Verbindung einrichten
-io.on("connection", (socket) => {
-  console.log("Client verbunden:", socket.id);
-
-  socket.emit("message", "Hallo vom Server");
-
-  socket.on("pingServer", () => {
-    console.log("Ping vom Client");
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client getrennt:", socket.id);
-  });
-});
-
-/*
-// socket-Verbindung einrichten
-io.on("connection", (socket) =>  {
-  socket.on("joinRoom", async (room) => {
-    const socketsInRoom = await io.in(room).fetchSockets();
-    // Hier soll ich Roulette Logik schreiben (viele Rooms)
-    socket.join(room);
-  });
-});
-*/
-
-
 // Verbindung mit STUN und TURN Server
 app.get('/ice', (req, res) => {
     const username = process.env.METERED_USER
@@ -173,6 +149,43 @@ app.get('/ice', (req, res) => {
             { urls: "turn:de.relay.metered.ca:443", username, credential },
             { urls: "turns:de.relay.metered.ca:443?transport=tcp", username, credential },
         ],
+    });
+});
+
+
+// socket-Verbindung einrichten
+io.on("connection", (socket) => {
+    console.log("Client id:", socket.id);
+
+    socket.emit("message", "Connection established with server");
+
+    socket.on("contact", () => {
+        for (const room of socket.rooms) {
+            if (room !== socket.id) {
+                socket.leave(room);
+            }
+        }
+
+        let i = 1;
+
+        while (true) {
+            const roomName = "room" + i;
+            // Überprüfen, wie viele Sockets sich bereits in diesem Raum befinden
+            const roomSet  = io.sockets.adapter.rooms.get(roomName);
+            const size = roomSet  ? roomSet.size : 0;
+
+            if (size < 2) {
+                socket.join(roomName);
+                socket.emit("message", "You joined " + roomName);
+                console.log(`${socket.id} joined ${roomName}`);
+                break;
+            }
+
+            i++;
+        }
+    });
+    socket.on("disconnect", () => {
+        console.log("Client disconnected:", socket.id);
     });
 });
 

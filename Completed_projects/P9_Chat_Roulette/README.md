@@ -35,8 +35,9 @@ Reihenfolge:
 8. Chat zwischen Profile erstellen, die auf die Taste (Contact) geklickt haben
 9. Turn Server anlegen
 9. WebRTC Verbindung erstellen
-10. Css style
-11. Tests
+10. JWT Token
+11. Css style
+12. Tests
 
 
 process.env.DATABASE_URL

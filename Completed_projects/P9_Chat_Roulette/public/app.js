@@ -1,3 +1,6 @@
+const socket = io();
+
+
 //  Help function
 function setStatusReg(text) {
     document.getElementById("status_registration").textContent = text;
@@ -8,10 +11,20 @@ function setStatusProfile(text) {
     document.getElementById("status_profile").textContent = text;
 }
 
+//  Help function
 function showApp() {
     document.querySelector(".regestration").style.display = "none";
     document.querySelector(".profile").style.display = "block";
 }
+
+// socket connection
+socket.on("connect", () => {
+    console.log("Connected to server", socket.id);
+});
+
+socket.on("message", (msg) => {
+    console.log("📨 from server:", msg);
+});
 
 // Sign_up
 document.getElementById("sign_up").addEventListener("submit", async (e) => {
@@ -110,10 +123,22 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
     }
 });
 
+/*
+// Contact buttom
+document.getElementById("play_btn").addEventListener("click", async (e) => {
+    e.pre
+    try  {
+
+
+    }
+}) 
+*/
+
 // Exit
-function exit()  {
+function exit() {
     localStorage.clear();
     sessionStorage.clear();
+    socket.disconnect();
     setStatusProfile("");
     setStatusReg("");
     document.getElementById("nickname").value = "";
@@ -121,5 +146,6 @@ function exit()  {
     document.getElementById("location").value = "";
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
+
 }
 

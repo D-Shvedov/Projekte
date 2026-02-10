@@ -129,6 +129,32 @@ app.post("/api/profile", async (req, res) => {
     }
 })
 
+// socket-Verbindung einrichten
+io.on("connection", (socket) => {
+  console.log("Client verbunden:", socket.id);
+
+  socket.emit("message", "Hallo vom Server");
+
+  socket.on("pingServer", () => {
+    console.log("Ping vom Client");
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client getrennt:", socket.id);
+  });
+});
+
+/*
+// socket-Verbindung einrichten
+io.on("connection", (socket) =>  {
+  socket.on("joinRoom", async (room) => {
+    const socketsInRoom = await io.in(room).fetchSockets();
+    // Hier soll ich Roulette Logik schreiben (viele Rooms)
+    socket.join(room);
+  });
+});
+*/
+
 
 // Verbindung mit STUN und TURN Server
 app.get('/ice', (req, res) => {
@@ -150,15 +176,6 @@ app.get('/ice', (req, res) => {
     });
 });
 
-/*
-// socket-Verbindung einrichten
-io.on("connection", (socket) =>  {
-  socket.on("joinRoom", async (room) => {
-    const socketsInRoom = await io.in(room).fetchSockets();
-    // Hier soll ich Roulette Logik schreiben (viele Rooms)
-    socket.join(room);
-  });
-});
-*/
+
 
 server.listen(port, () => console.log("Server listening on", port));

@@ -2,16 +2,17 @@ Lastenheft:
 
 Funktionalität
 
-1. Einen Konto anlegen
-2. In den KOnto rein kommen
-3. Passwörter haschen
+1. Einen Konto anlegen + 
+2. In den KOnto rein kommen + 
+3. Passwörter haschen +
 4. Authentifizierung für den Seiten benutzen  
-5. Das alles im WAN machen 
-6. Profil daten sammeln 
-7. Eine Taste drücken und mit jemandem verrbinden, der auch auf die Verbindung wartet.
+5. Das alles im WAN machen + 
+6. Profil daten sammeln + 
+7. Eine Taste drücken und mit jemandem verrbinden, der auch auf die Verbindung wartet. 
 8. Einen chat erstellen zwischen Leute + Videochat gleichzeitug
 9. Eine Taste nächste 
 10. Eine Taste raus 
+11. Eine Taste Exit + 
 
 Pflichtenheft:
 
@@ -25,11 +26,17 @@ Zuständige Technology: WebRtc-protokol, Metered NaaS (TURN-Server), JWT (JSON W
 Reihenfolge: 
 1. Node.js einstellen +
 2. HTML Seite + 
-3. Express + Socket.io einrichten +
+3. Express + Socket.io in Backend erstellen +
 4. Datenbank anlegen +
 5. Tabelle erstellen - users (id, login, password_hash) +
-6. Anmeldung-Mechanismus Frontend-Backend-Hashing-Datenbank
-7. Profil-Daten
+6. Anmeldung-Mechanismus Frontend-Backend-Hashing-Datenbank +
+7. Profil-Daten +
+9. Sockei.IO einrichten 
+8. Chat zwischen Profile erstellen, die auf die Taste (Contact) geklickt haben
+9. Turn Server anlegen
+9. WebRTC Verbindung erstellen
+10. Css style
+11. Tests
 
 
 process.env.DATABASE_URL

@@ -57,7 +57,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Sign up
-app.post("/api/sign_up", authenticateToken, async (req, res) => {
+app.post("/api/sign_up", async (req, res) => {
     try {
         const { login, password } = req.body;
 
@@ -86,7 +86,7 @@ app.post("/api/sign_up", authenticateToken, async (req, res) => {
 });
 
 // Sign in
-app.post("/api/sign_in", authenticateToken, async (req, res) => {
+app.post("/api/sign_in", async (req, res) => {
     try {
         const { login, password } = req.body;
 

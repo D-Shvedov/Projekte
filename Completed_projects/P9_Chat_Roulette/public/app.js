@@ -142,7 +142,7 @@ document.getElementById("chat").addEventListener("submit", async (e) => {
     e.preventDefault();
     const inputEl = document.getElementById("message");
     let correspondence = document.getElementById("correspondence")
-    correspondence.textContent = inputEl.value;
+    correspondence.textContent += `\n${inputEl.value}`;
     const msg = inputEl.value.trim();
     if (!msg) return;
     if (!roomName) {
@@ -158,7 +158,8 @@ const correspondence = document.getElementById("correspondence");
 
 // Receive messages
 socket.on("roomName:msg", ({ roomName, msg, from }) => {
-    correspondence.textContent = `[${roomName}] ${from}: ${msg}`;
+    correspondence.textContent += `\n[${roomName}] ${from}: ${msg}`;
+
 });
 
 // Exit

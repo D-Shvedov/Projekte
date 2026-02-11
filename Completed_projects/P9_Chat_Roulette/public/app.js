@@ -223,6 +223,11 @@ document.getElementById("play_btn").addEventListener("click", async (e) => {
     resetWebRTC();
     // reset current room 
     roomName = null;
+    if (!socket.connected) {
+        socket.connect();
+        socket.once("connect", () => socket.emit("contact"));
+        return;
+    }
     socket.emit("contact");
 })
 
@@ -355,4 +360,3 @@ function exit() {
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
 }
-

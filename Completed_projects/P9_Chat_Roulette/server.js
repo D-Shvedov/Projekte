@@ -159,6 +159,8 @@ io.on("connection", (socket) => {
 
     socket.emit("message", "Connection established with server");
 
+    let lastRoomName = null;
+
     socket.on("contact", () => {
         for (const room of socket.rooms) {
             if (room !== socket.id) {
@@ -174,9 +176,10 @@ io.on("connection", (socket) => {
             const roomSet  = io.sockets.adapter.rooms.get(roomName);
             const size = roomSet  ? roomSet.size : 0;
 
-            if (size < 2) {
+            if (size < 2 && roomName !== lastRoomName) {
                 socket.join(roomName);
                 socket.emit("roomName", roomName);
+                lastRoomName = roomName;
                 console.log(`${socket.id} joined ${roomName}`);
                 break;
             }

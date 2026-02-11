@@ -81,6 +81,9 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
             localStorage.setItem("location", location);
             localStorage.setItem("birthday", (birthday || "").slice(0, 10));
 
+            if (!socket.connected) {
+                socket.connect();
+            }
 
             // value nicht textContent
             document.getElementById("nickname").value = localStorage.getItem("nickname") || "";
@@ -128,6 +131,8 @@ let roomName = null;
 // Contact buttom
 document.getElementById("play_btn").addEventListener("click", async (e) => {
     e.preventDefault();
+    // reset current room so a new contact puts you in a new room
+    roomName = null;
     socket.emit("contact");
 })
 
@@ -160,13 +165,14 @@ const correspondence = document.getElementById("correspondence");
 socket.on("roomName:msg", ({ roomName, msg, from }) => {
     correspondence.textContent += `\n[${roomName}] ${from}: ${msg}`;
 
-});
+}); 
 
 // Exit
 function exit() {
     localStorage.clear();
     sessionStorage.clear();
     socket.disconnect();
+    roomName = null;
 
     setStatusProfile("");
     setStatusReg("");

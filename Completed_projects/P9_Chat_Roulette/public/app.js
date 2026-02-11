@@ -141,6 +141,8 @@ socket.on("roomName", (name) => {
 document.getElementById("chat").addEventListener("submit", async (e) => {
     e.preventDefault();
     const inputEl = document.getElementById("message");
+    let correspondence = document.getElementById("correspondence")
+    correspondence.textContent = inputEl.value;
     const msg = inputEl.value.trim();
     if (!msg) return;
     if (!roomName) {
@@ -152,9 +154,11 @@ document.getElementById("chat").addEventListener("submit", async (e) => {
     inputEl.value = "";
 });
 
-// Empfang von Nachrichten im Raum
+const correspondence = document.getElementById("correspondence");
+
+// Receive messages
 socket.on("roomName:msg", ({ roomName, msg, from }) => {
-    console.log(`[${roomName}] ${from}: ${msg}`);
+    correspondence.textContent = `[${roomName}] ${from}: ${msg}`;
 });
 
 // Exit
@@ -162,13 +166,14 @@ function exit() {
     localStorage.clear();
     sessionStorage.clear();
     socket.disconnect();
+
     setStatusProfile("");
     setStatusReg("");
-    document.getElementById("nickname").value = "";
-    document.getElementById("birthday").value = "";
-    document.getElementById("location").value = "";
+
+    document.querySelectorAll("input").forEach(input => input.value = "");
+
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
-
 }
+
 

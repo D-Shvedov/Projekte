@@ -31,7 +31,10 @@ socket.on("message", (msg) => {
 });
 
 async function fetchIceServers() {
-    const res = await fetch("/ice");
+    const token = localStorage.getItem("token");
+    const res = await fetch("/ice", {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {}
+    });
     if (!res.ok) throw new Error("Failed to fetch /ice");
     const data = await res.json();
     return data.iceServers;
@@ -163,9 +166,10 @@ document.getElementById("sign_in").addEventListener("submit", async (e) => {
         const data = await res.json()
 
         if (res.ok) {
-            const { nickname, birthday, location } = data;
+            const { nickname, birthday, location, token } = data;
             setStatusReg("Succeeded");
             localStorage.setItem("login", login);
+            if (token) localStorage.setItem("token", token);
             localStorage.setItem("nickname", nickname);
             localStorage.setItem("location", location);
             localStorage.setItem("birthday", (birthday || "").slice(0, 10));
@@ -196,9 +200,17 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
     const login = localStorage.getItem("login");
 
     try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setStatusProfile("Token erforderlich");
+            return;
+        }
         const res = await fetch("/api/profile", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify({ nickname, birthday, location, login })
         })
 

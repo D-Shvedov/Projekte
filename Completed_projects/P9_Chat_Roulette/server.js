@@ -111,7 +111,14 @@ app.post("/api/sign_in", async (req, res) => {
 
         const user = dbRes.rows[0];
 
+        const token = jwt.sign(
+            { login },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
         return res.status(200).json({
+            token,
             nickname: user.nickname,
             birthday: user.birthday,
             location: user.location,

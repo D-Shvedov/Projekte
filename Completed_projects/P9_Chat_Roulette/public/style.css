@@ -1,0 +1,232 @@
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b1020;
+  --panel: rgba(255, 255, 255, 0.06);
+  --panel-2: rgba(255, 255, 255, 0.09);
+  --text: #e9eefc;
+  --muted: rgba(233, 238, 252, 0.7);
+  --border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  --radius: 16px;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 20% 0%, #1a2a6c 0%, transparent 55%),
+              radial-gradient(900px 500px at 90% 10%, #b21f1f 0%, transparent 55%),
+              radial-gradient(900px 700px at 50% 100%, #0b1020 0%, #060816 60%);
+  color: var(--text);
+  padding: 24px;
+}
+
+/* ---------- Layout Containers ---------- */
+.regestration,
+.profile {
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  backdrop-filter: blur(10px);
+}
+
+h1, h2, h3 {
+  margin: 0 0 12px;
+  letter-spacing: 0.2px;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ---------- Forms ---------- */
+form {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+label {
+  font-size: 0.92rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  outline: none;
+}
+
+input::placeholder {
+  color: rgba(233, 238, 252, 0.5);
+}
+
+input:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 12px;
+  transition: transform 0.08s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Status Text ---------- */
+#status_registration,
+#status_profile,
+#status_roulette {
+  color: #bfe4ff;
+}
+
+/* ---------- Profile Form: nicer grid on wide screens ---------- */
+#profile_entries {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  #profile_entries {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 14px;
+  }
+
+  #profile_entries button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* ---------- Videos ---------- */
+.videos {
+  display: grid;
+  gap: 14px;
+  margin: 10px 0 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+@media (min-width: 840px) {
+  .videos {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+video {
+  width: 100%;
+  max-height: 320px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border);
+}
+
+/* ---------- Chat ---------- */
+.chat {
+  margin: 12px 0 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#chat {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+#message {
+  height: 44px;
+}
+
+#correspondence {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+/* Optional: chat line look if you append <div> lines */
+#correspondence > div {
+  padding: 8px 10px;
+  margin: 6px 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Roulette Buttons ---------- */
+.buttons_roulette {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#play_btn {
+  border-color: rgba(99, 255, 187, 0.35);
+}
+
+#break_btn {
+  border-color: rgba(255, 133, 133, 0.35);
+}
+
+/* ---------- Logout ---------- */
+#log_out {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 90, 90, 0.14);
+  border-color: rgba(255, 90, 90, 0.28);
+}
+
+#log_out:hover {
+  background: rgba(255, 90, 90, 0.2);
+}
+
+/* ---------- Minor: spacing between sections ---------- */
+br {
+  display: none;
+}

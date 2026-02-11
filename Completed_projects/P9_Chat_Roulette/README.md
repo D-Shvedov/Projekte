@@ -32,11 +32,11 @@ Reihenfolge:
 6. Anmeldung-Mechanismus Frontend-Backend-Hashing-Datenbank +
 7. Profil-Daten +
 9. Sockei.IO einrichten 
-8. Chat zwischen Profile erstellen, die auf die Taste (Contact) geklickt haben
-9. Turn Server anlegen
-9. WebRTC Verbindung erstellen
+8. Chat zwischen Profile erstellen, die auf die Taste (Contact) geklickt haben + 
+9. Turn Server anlegen +
+9. WebRTC Verbindung erstellen + 
 10. JWT Token
-11. Css style
+11. Css style +
 12. Tests
 
 

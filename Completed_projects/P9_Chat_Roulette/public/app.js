@@ -308,17 +308,26 @@ document.getElementById("chat").addEventListener("submit", async (e) => {
 
     if (!msg) return;
     if (!roomName) return;
- 
+
     socket.emit("roomName:msg", { roomName, msg });
     inputEl.value = "";
 });
 
 const correspondence = document.getElementById("correspondence");
 
+
 // Receive messages
 socket.on("roomName:msg", ({ roomName, msg, from }) => {
     correspondence.textContent += `\n[${roomName}] ${from}: ${msg}`;
-}); 
+});
+
+// Break
+document.getElementById("break_btn").addEventListener("click", async (e) => {
+    e.preventDefault();
+    resetWebRTC();
+    stopLocalStream();
+    socket.disconnect();
+})
 
 // Exit
 function exit() {

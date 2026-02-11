@@ -226,6 +226,15 @@ document.getElementById("play_btn").addEventListener("click", async (e) => {
     socket.emit("contact");
 })
 
+// Break: leave room but keep socket connected
+document.getElementById("break_btn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    socket.emit("break");
+    resetWebRTC();
+    stopLocalStream();
+    roomName = null;
+});
+
 // 
 socket.on("roomName", (name) => {
     roomName = name;
@@ -329,7 +338,7 @@ document.getElementById("break_btn").addEventListener("click", async (e) => {
     socket.disconnect();
 })
 
-// Exit
+// Exit 
 function exit() {
     localStorage.clear();
     sessionStorage.clear();
@@ -346,5 +355,4 @@ function exit() {
     document.querySelector(".regestration").style.display = "block";
     document.querySelector(".profile").style.display = "none";
 }
-
 

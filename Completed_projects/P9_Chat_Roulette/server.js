@@ -207,6 +207,15 @@ io.on("connection", (socket) => {
         io.to(to).emit("iceCandidate", { candidate, from: socket.id });
     });
 
+    socket.on("break", () => {
+        for (const room of socket.rooms) {
+            if (room !== socket.id) {
+                socket.to(room).emit("userLeft", socket.id);
+                socket.leave(room);
+            }
+        }
+    });
+
     // Nachricht im Raum erhalten und an alle im Raum senden
     socket.on("roomName:msg", ({ roomName, msg }) => {
         if (!roomName || !msg) return;

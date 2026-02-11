@@ -155,14 +155,14 @@ app.get('/ice', (req, res) => {
 
 // socket-Verbindung einrichten
 io.on("connection", (socket) => {
-    console.log("Client id:", socket.id);
-
+    
     socket.emit("message", "Connection established with server");
-
     let lastRoomName = null;
 
-    socket.on("contact", () => {
+    socket.on("contact", async () => {
+        // search in all rooms
         for (const room of socket.rooms) {
+            // Wenn dies NICHT mein persönliches Zimmer (meine ID) ist, dann verlasse es.
             if (room !== socket.id) {
                 socket.leave(room);
             }
@@ -172,20 +172,39 @@ io.on("connection", (socket) => {
 
         while (true) {
             const roomName = "room" + i;
-            // Überprüfen, wie viele Sockets sich bereits in diesem Raum befinden
-            const roomSet  = io.sockets.adapter.rooms.get(roomName);
-            const size = roomSet  ? roomSet.size : 0;
+            // Check if this room exists
+            const roomSet = io.sockets.adapter.rooms.get(roomName);
+            // how many users
+            const size = roomSet ? roomSet.size : 0;
 
             if (size < 2 && roomName !== lastRoomName) {
                 socket.join(roomName);
                 socket.emit("roomName", roomName);
                 lastRoomName = roomName;
                 console.log(`${socket.id} joined ${roomName}`);
+                const socketsInRoom = await io.in(roomName).fetchSockets();
+                const others = socketsInRoom
+                    .filter((s) => s.id !== socket.id)
+                    .map((s) => s.id);
+                socket.emit("existingUsers", others);
+                socket.to(roomName).emit("userJoined", socket.id);
                 break;
             }
 
             i++;
         }
+    });
+
+    socket.on("offer", ({ offer, to }) => {
+        io.to(to).emit("offer", { offer, from: socket.id });
+    });
+
+    socket.on("answer", ({ answer, to }) => {
+        io.to(to).emit("answer", { answer, from: socket.id });
+    });
+
+    socket.on("iceCandidate", ({ candidate, to }) => {
+        io.to(to).emit("iceCandidate", { candidate, from: socket.id });
     });
 
     // Nachricht im Raum erhalten und an alle im Raum senden
@@ -196,6 +215,11 @@ io.on("connection", (socket) => {
             msg,
             from: socket.id
         });
+    });
+    socket.on("disconnecting", () => {
+        for (const room of socket.rooms) {
+            if (room !== socket.id) socket.to(room).emit("userLeft", socket.id);
+        }
     });
     socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);

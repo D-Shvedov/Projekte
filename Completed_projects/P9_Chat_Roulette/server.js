@@ -176,7 +176,7 @@ io.on("connection", (socket) => {
 
             if (size < 2) {
                 socket.join(roomName);
-                socket.emit("message", "You joined " + roomName);
+                socket.emit("roomName", roomName);
                 console.log(`${socket.id} joined ${roomName}`);
                 break;
             }
@@ -184,11 +184,19 @@ io.on("connection", (socket) => {
             i++;
         }
     });
+
+    // Nachricht im Raum erhalten und an alle im Raum senden
+    socket.on("roomName:msg", ({ roomName, msg }) => {
+        if (!roomName || !msg) return;
+        io.to(roomName).emit("roomName:msg", {
+            roomName,
+            msg,
+            from: socket.id
+        });
+    });
     socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);
     });
 });
-
-
 
 server.listen(port, () => console.log("Server listening on", port));

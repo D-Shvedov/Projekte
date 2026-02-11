@@ -123,13 +123,39 @@ document.getElementById("profile_entries").addEventListener("submit", async (e) 
     }
 });
 
+let roomName = null;
 
 // Contact buttom
 document.getElementById("play_btn").addEventListener("click", async (e) => {
     e.preventDefault();
     socket.emit("contact");
-}) 
+})
 
+// 
+socket.on("roomName", (name) => {
+    roomName = name;
+    console.log("Joined room:", roomName);
+});
+
+
+document.getElementById("chat").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const inputEl = document.getElementById("message");
+    const msg = inputEl.value.trim();
+    if (!msg) return;
+    if (!roomName) {
+        // ich soll noch zurückkehren
+        console.warn("Please on Play/Contact click!");
+        return;
+    }
+    socket.emit("roomName:msg", { roomName, msg });
+    inputEl.value = "";
+});
+
+// Empfang von Nachrichten im Raum
+socket.on("roomName:msg", ({ roomName, msg, from }) => {
+    console.log(`[${roomName}] ${from}: ${msg}`);
+});
 
 // Exit
 function exit() {

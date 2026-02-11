@@ -1,17 +1,24 @@
+// express
 const express = require('express');
 const app = express();
 
+// socket
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
+// hashing
 const bcrypt = require("bcrypt");
-const { Pool } = require("pg");
 
+// postgres 
+const { Pool } = require("pg");
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
 });
+
+// JWT authentication
+const jwt = require("jsonwebtoken");
 
 // export pool for testing
 module.exports = pool;
@@ -31,8 +38,26 @@ async function hashPassword(password) {
     return await bcrypt.hash(password, SALT_ROUNDS);
 }
 
+// Middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: "Token erforderlich" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: "Token ungültig oder abgelaufen" });
+    }
+    req.user = user; // Benutzer-Info in Request speichern
+    next();
+  });
+};
+
 // Sign up
-app.post("/api/sign_up", async (req, res) => {
+app.post("/api/sign_up", authenticateToken, async (req, res) => {
     try {
         const { login, password } = req.body;
 
@@ -61,7 +86,7 @@ app.post("/api/sign_up", async (req, res) => {
 });
 
 // Sign in
-app.post("/api/sign_in", async (req, res) => {
+app.post("/api/sign_in", authenticateToken, async (req, res) => {
     try {
         const { login, password } = req.body;
 
@@ -99,7 +124,7 @@ app.post("/api/sign_in", async (req, res) => {
 });
 
 // Save profile
-app.post("/api/profile", async (req, res) => {
+app.post("/api/profile", authenticateToken, async (req, res) => {
     try {
         const { nickname, birthday, location, login } = req.body
 
@@ -133,7 +158,7 @@ app.post("/api/profile", async (req, res) => {
 })
 
 // Verbindung mit STUN und TURN Server
-app.get('/ice', (req, res) => {
+app.get('/ice', authenticateToken, (req, res) => {
     const username = process.env.METERED_USER
     const credential = process.env.METERED_PASS
 

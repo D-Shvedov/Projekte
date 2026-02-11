@@ -45,6 +45,7 @@ process.env.SALT_ROUNDS
 port = process.env.PORT
 process.env.METERED_USER
 process.env.METERED_PASS
+process.env.JWT_SECRET
 
 Backlog: WebRTC Logik schreiben 
 
